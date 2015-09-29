@@ -5,7 +5,7 @@
 
 int lineno = 1;
 
-void yyerror(char *str);
+extern void yyerror(char *str);
 %}
 
 %%
@@ -43,7 +43,8 @@ float		{ return FLOAT; }
 "<="	|
 ">="		{ return COMPARISON; }
 
-[-+*/;(),.;]	
+";"			{ ++lineno; return yytext[0]; }
+[-+*/(),.]	
 			{ return yytext[0]; }
 
 [A-Za-z][A-Za-z0-9_]*
@@ -61,19 +62,12 @@ float		{ return FLOAT; }
 "."[0-9]*[eE][+-]?[0-9]+
 			{ return APPROX_NUM; }
 
-\n			++lineno;
-
-[ \t\r]+	;
+[ \t\r\n]+	;
 '--'.*		;
 
 .			yyerror("syntax error");
 
 %%
-
-/*void yyerror(char *str)
-{
-	printf("%s near \'%s\' at line %d", str, yytext, lineno);
-}*/
 
 int main(/*int argc, const char* argv[]*/)
 {
