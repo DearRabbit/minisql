@@ -45,7 +45,7 @@ float		{ return FLOAT; }
 ">="		{ return COMPARISON; }
 
 ";"			{ ++lineno; return yytext[0]; }
-[-+*/(),.]	
+[-+*/(),]	
 			{ return yytext[0]; }
 
 [A-Za-z][A-Za-z0-9_]*
