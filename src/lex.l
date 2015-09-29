@@ -70,10 +70,10 @@ float		{ return FLOAT; }
 
 %%
 
-void yyerror(char *str)
+/*void yyerror(char *str)
 {
-	printf("%s near \'%s\' at line %d", str, yytext. lineno);
-}
+	printf("%s near \'%s\' at line %d", str, yytext, lineno);
+}*/
 
 int main(/*int argc, const char* argv[]*/)
 {
