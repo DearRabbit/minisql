@@ -19,6 +19,7 @@ quit		{ return QUIT; }
 execfile	{ return EXEC; }
 
 table		{ return TABLE; }
+unique		{ return UNIQUE; }
 index		{ return INDEX; }
 values		{ return VALUES; }
 primary		{ return PRIMARY; }
