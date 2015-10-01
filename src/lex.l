@@ -63,7 +63,19 @@ float		{ return FLOAT; }
 "."[0-9]*[eE][+-]?[0-9]+
 			{ return APPROX_NUM; }
 
+'[^'\n']*'	{
+			int c = input();
+			unput(c);
+			if (c != '\'')
+				return STRING;
+			else
+				yymore();
+			}
+
+'[^'\n']*$	{ yyerror("unterminated string"); }
+
 [ \t\r\n]+	;
+
 '--'.*		;
 
 .			yyerror("syntax error");
