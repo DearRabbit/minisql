@@ -86,4 +86,5 @@ int main(/*int argc, const char* argv[]*/)
 {
 	if (!yyparse())
 		printf("Error.");
+
 }
