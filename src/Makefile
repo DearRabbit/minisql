@@ -20,9 +20,10 @@ lex.yy.cpp: lex.l
 	$(LEX) lex.l
 	mv lex.yy.c lex.yy.cpp
 
-yacc.tab.cpp yacc.tab.h: yacc.y
-	$(YACC) yacc.y 
-	mv yacc.tab.c yacc.tab.cpp
+yacc.tab.cpp yacc.tab.h: yacc.yy
+	$(YACC) yacc.yy
+	mv yacc.tab.cc yacc.tab.cpp
+	mv yacc.tab.hh yacc.tab.h
 
 clean: 
-	rm lex.yy.* yacc.tab.* a.out main.o
+	rm lex.yy.* yacc.tab.* a.out main.o yacc.output
