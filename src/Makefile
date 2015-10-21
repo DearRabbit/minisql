@@ -4,17 +4,20 @@ YACC = bison -dtv
 LDFLAGS =
 DBGFLAGS = -g
 
-all: yacc.tab.o lex.yy.o main.o
-	$(CC) $(LDFLAGS) yacc.tab.o lex.yy.o main.o
+all: yacc.tab.o lex.yy.o main.o Database.o
+	$(CC) $(LDFLAGS) $^
 
 main.o: main.cpp
-	$(CC) $(DBGFLAGS) -c $<
+	$(CC) $(DBGFLAGS) -c $^
 
-lex.yy.o: lex.yy.cpp yacc.tab.h
-	$(CC) $(DBGFLAGS) -c $<
+Database.o: Database.cpp
+	$(CC) $(DBGFLAGS) -c $^
+
+lex.yy.o: lex.yy.cpp
+	$(CC) $(DBGFLAGS) -c $^
 
 yacc.tab.o: yacc.tab.cpp
-	$(CC) $(DBGFLAGS) -c $< 
+	$(CC) $(DBGFLAGS) -c $^
 
 lex.yy.cpp: lex.l
 	$(LEX) lex.l
