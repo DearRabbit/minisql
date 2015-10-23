@@ -13,20 +13,17 @@ main.o: main.cpp
 Database.o: Database.cpp
 	$(CC) $(DBGFLAGS) -c $^
 
-lex.yy.o: lex.yy.cpp
+lex.yy.o: lex.yy.c
 	$(CC) $(DBGFLAGS) -c $^
 
-yacc.tab.o: yacc.tab.cpp
+yacc.tab.o: yacc.tab.cc
 	$(CC) $(DBGFLAGS) -c $^
 
-lex.yy.cpp: lex.l
+lex.yy.c: lex.l
 	$(LEX) lex.l
-	mv lex.yy.c lex.yy.cpp
 
-yacc.tab.cpp yacc.tab.h: yacc.yy
+yacc.tab.cc yacc.tab.h: yacc.yy
 	$(YACC) yacc.yy
-	mv yacc.tab.cc yacc.tab.cpp
-	mv yacc.tab.hh yacc.tab.h
 
 clean: 
-	rm lex.yy.* yacc.tab.* a.out main.o yacc.output
+	rm lex.yy.* yacc.tab.* a.out main.o Database.o yacc.output

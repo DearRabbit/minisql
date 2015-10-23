@@ -1,10 +1,19 @@
 %{
 #include <cstdio>
 #include <cstdlib>
-#include "yacc.tab.h"
+#include "Database.h"
+#include "yacc.tab.hh"
 
-#define MINISQL_PROMPT1() printf("minisql>")
-#define MINISQL_PROMPT2() printf("       >")
+
+#define MINISQL_PROMPT1() printf("minisql> ")
+#define MINISQL_PROMPT2() printf("       > ")
+
+/* throw exception when failed */
+#define STRDUP_NEW(dest, src) \
+{\
+	dest = new char[strlen(src) + 1];\
+	strcpy(dest, src);\
+}
 
 %}
 
@@ -34,33 +43,29 @@ where		{ return WHERE; }
 and	| "&&"	{ return AND; }
 or | "||"	{ return OR; }
 
--?[0-9]+	{
-				yylval.intval = atoi(yytext);
-				return INTNUM;
-			}
-			
+-?[0-9]+	|
 -?[0-9]+"."[0-9]*	|
 -?"."[0-9]+			|
 -?[0-9]+[eE][-+]?[0-9]+				|
 -?[0-9]+"."[0-9]*[eE][-+]?[0-9]+	|
 -?"."[0-9]+[eE][-+]?[0-9]+	{ 
-								yylval.fval = atof(yytext);  
-								return FLOATNUM; 
+								yylval.numval = atof(yytext);  
+								return NUMBER; 
 							}
 
 '(''|[^'\n])*'			{
-							yylval.strval = (unsigned char*)strdup(yytext);
+							STRDUP_NEW(yylval.strval, yytext);
 							return STRING;
 						}
 	
 [A-Za-z][A-Za-z0-9_]*	{ 
-							yylval.strval = (unsigned char*)strdup(yytext);
+							STRDUP_NEW(yylval.strval, yytext);
 							return NAME; 
 						}
 
 [A-Za-z][A-Za-z0-9_]*"."[A-Za-z0-9]+	{ 
 							/* warning!: Cause Error When table.column is available */
-							yylval.strval = (unsigned char*)strdup(yytext);
+							STRDUP_NEW(yylval.strval, yytext);
 							return FILENAME; 
 						}
 
