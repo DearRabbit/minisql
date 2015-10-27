@@ -1,49 +1,8 @@
 #ifndef __CATALOG__MANAGER__
 #define __CATALOG__MANAGER__
 
-#include <string>
-#include <list>
 
-using std::list;
-using std::string;
-
-/*
-typedef struct
-{
-	string col_name;
-	int    unique;
-	///!!! datatype enums
-} DBColumn;
-
-typedef struct
-{
-	string table_name;
-	unsigned int ncol;
-	DBColumn* cols[32];
-
-	// table name, attributes names and types, unique or not.
-} DBTable;
-
-typedef struct
-{
-	string   idx_name;
-	DBTable* idx_table;
-	DBColumn* idx_col;
-
-	// index name, on which table, on which col.
-} DBIndex;
-
-typedef struct
-{
-	string  db_name;
-	list < DBTable* >  db_tables;
-	list < DBIndex* >  db_indexes;
-
-	// table name, table col nums, primary keys, indexes.
-} DBDef;
-*/
-
-struct DBColumn;  // should be opaque to the api level
+struct DBColumn;
 struct DBTable;
 struct DBIndex;
 struct DBDef;
@@ -57,22 +16,46 @@ public:
 	CatalogManager();
 	~CatalogManager();
 
-	int new_database_def(string& db_name);
-	int delete_database_def(string& db_name);
-	
-	int new_table_def(string& table_name, string* col_names, int * col_types, unsigned int ncol);
-	int new_index_def(string& idx_name,  string& table_name, string& col_name);
-	int delete_table_def(string& table_name);
-	int delete_index_def(string& table_name);	
-	
-	static CatalogManager * getInstance();
+	//int new_database_def(char* db_name);		//for multiple db, useless for now
+	//int delete_database_def(char* db_name);
 
-//  Called across mgrs only 
-	DBTable* getDBTable();
+	// function:
+	// Write a new table definition into a .frm file.
+	// ---
+	// nodeAST - A create AST
+	// ---
+	// returns 1 on success
+	// returns 0 on failure	
+	int new_table_def(NodeAST* nodeAST);
+
+	// function:
+	// Write a new index definition into a .frm file
+	// ---
+	int new_index_def(NodeAST* nodeAST);
+
+	// function:
+	// Delete a table definition from a .frm file
+	int delete_table_def(NodeAST* nodeAST);
+
+	// function:
+	// Delete an index definition from a .frm file
+	int delete_index_def(NodeAST* nodeAST);
 	
+	// function:
+	// Modify nodeAST to attach to it the table 
+	// definition. (nodeAST would be modified)
+	// ---
+	int getTableDef(NodeAST* nodeAST);
+
+	// function:
+	// Modify nodeAST to attach to it the index
+	// definition
+	int getIndexDef(NodeAST* nodeAST);
+
+
+	static CatalogManager * getInstance();
 private:
-	int cm_writeDBDef(DBDef* db_def);
-//
+	//
 };
 
 #endif
