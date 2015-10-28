@@ -4,7 +4,6 @@
 #include <cstring>
 #include "Database.h"
 
-extern int yyerror(Database *YYDatabase, const char* str);
 extern int yylex(void);
 extern char *yytext;
 extern FILE *yyin;
