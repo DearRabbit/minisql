@@ -40,10 +40,10 @@ typedef struct node
 	node *leftSon;
 	node *rightSon;
 
-	// different simultaneously
+	// simultaneous
 	int operation;
 
-	// data, in val_list of inserting,
+	// data, in val_list of creating,
 	// numval stores the len of char. 
 	// (1 <= n <=255)
 	char *strval;
@@ -70,6 +70,9 @@ class NodeManager
 		Node* newEmptyNode();
 		void setRootNode(Node* root);
 		Node* getRootNode(size_t pos);
+		//   v: delete the last unfinished node,
+		//   v: for error processing in yyparse
+		void delLastRootNode();
 
 		vector<Node*>& getRootTree();
 		size_t getRootTreeSize();

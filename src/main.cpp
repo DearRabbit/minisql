@@ -6,6 +6,6 @@
 int main()
 {
 	Database a;
-	Database.getInstance()->run();
+	Database::getInstance()->run();
 	return 0;
 }

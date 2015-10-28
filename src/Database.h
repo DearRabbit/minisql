@@ -19,11 +19,8 @@ class Database
 		static Database* getInstance();
 
 		void run();
+		
+		// methods of AST Processing
 		void processAST();
-		/*void addRootNode(NodeAST* root);
-		void delLastRootNode();
-		Node* newEmptyNode();
-		void cleanAST();*/
-
 };
 #endif //Database.h

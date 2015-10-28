@@ -15,13 +15,21 @@ char ErrorToken [ErrorTokenLength];
 
 #define MINISQL_PROMPT1() printf("minisql> ")
 #define MINISQL_PROMPT2() printf("       > ")
+
+
+int yyerror(NodeManager *YYAST, const char* str)
+{
+	/* dummy */
+	return 0;
+}
+
 %}
 
-%parse-param { class Database *YYDatabase }
+%parse-param { class NodeManager *YYAST }
 
 %union{
 	char *strval;
-	NodeAST *treeNode;
+	Node *treeNode;
 	/* warning: use double? */
 	double numval;
 }
@@ -105,25 +113,25 @@ stmt:		QUIT CMD_FINISH
 		|	sql_list CMD_FINISH
 			{
 				/* do something! */
-				YYDatabase->processAST();
+				Database::getInstance()->processAST();
 				MINISQL_PROMPT1();
 			}
 		|	sql_list ';' error_statment CMD_FINISH
 			{
-				YYDatabase->processAST();
+				Database::getInstance()->processAST();
 				goto processErrorToken;
 			}
 		|	sql_list error_statment CMD_FINISH
 			{
-				YYDatabase->delLastRootNode();
-				YYDatabase->processAST();
+				YYAST->delLastRootNode();
+				Database::getInstance()->processAST();
 				goto processErrorToken;
 			}
 		|	error_statment CMD_FINISH
 			{
 				processErrorToken:
 				fprintf(stderr ,"Error: near \"%s\": syntax error\n", ErrorToken);
-				YYDatabase->cleanAST();
+				YYAST->clean();
 				ErrorFlag = 0;
 				yyclearin;
 				yyerrok;
@@ -134,11 +142,11 @@ stmt:		QUIT CMD_FINISH
 sql_list:
 			sql 
 			{
-				YYDatabase->addRootNode($1);
+				YYAST->setRootNode($1);
 			}
 		|	sql_list ';' sql
 			{
-				YYDatabase->addRootNode($3);
+				YYAST->setRootNode($3);
 			}
 		;
 
@@ -171,7 +179,7 @@ create:
 table_name:
 			NAME
 			{
-				$$ = YYDatabase->newEmptyNode();
+				$$ = YYAST->newEmptyNode();
 				$$->strval = $1;
 				$$->operation = VAL_NAME;
 			}
@@ -180,7 +188,7 @@ table_name:
 index_name:
 			NAME
 			{
-				$$ = YYDatabase->newEmptyNode();
+				$$ = YYAST->newEmptyNode();
 				$$->strval = $1;
 				$$->operation = VAL_NAME;
 			}
@@ -189,7 +197,7 @@ index_name:
 column_name:	
 			NAME
 			{
-				$$ = YYDatabase->newEmptyNode();
+				$$ = YYAST->newEmptyNode();
 				$$->strval = $1;
 				$$->operation = VAL_NAME;
 			}
@@ -216,7 +224,7 @@ column_def:
 				$$->strval = $1;
 				if ($3 != 0)
 				{
-					$$->leftSon = YYDatabase->newEmptyNode();
+					$$->leftSon = YYAST->newEmptyNode();
 					$$->leftSon->operation = $3;
 				}
 			}
@@ -225,25 +233,25 @@ column_def:
 data_type:
 			CHAR
 			{
-				$$ = YYDatabase->newEmptyNode();
+				$$ = YYAST->newEmptyNode();
 				$$->operation = VAL_CHAR;
 				$$->numval = 1;
 			}
 		|	CHAR '(' NUMBER ')'
 			{
-				$$ = YYDatabase->newEmptyNode();
+				$$ = YYAST->newEmptyNode();
 				$$->operation = VAL_CHAR;
 				$$->numval = $3;
 			}
 		|	INTEGER
 			{
-				$$ = YYDatabase->newEmptyNode();
+				$$ = YYAST->newEmptyNode();
 				$$->operation = VAL_INT;
 			}
 		|	FLOAT
 			INTEGER
 			{
-				$$ = YYDatabase->newEmptyNode();
+				$$ = YYAST->newEmptyNode();
 				$$->operation = VAL_FLOAT;
 			}
 		;
@@ -266,7 +274,7 @@ column_def_opt:
 table_constraint_def:
 			PRIMARY KEY '(' NAME ')'
 			{
-				$$ = YYDatabase->newEmptyNode();
+				$$ = YYAST->newEmptyNode();
 				$$->operation = DEF_PRIMARY;
 				$$->strval = $4;
 			}
@@ -314,7 +322,7 @@ opt_where:
 expr_list:
 			expr AND expr
 			{
-				$$ = YYDatabase->newEmptyNode();
+				$$ = YYAST->newEmptyNode();
 				$$->operation = OP_AND;
 				$$->leftSon = $1;
 				$$->rightSon = $3;
@@ -341,32 +349,32 @@ expr:
 comparison:
 			EQ
 			{
-				$$ = YYDatabase->newEmptyNode();
+				$$ = YYAST->newEmptyNode();
 				$$->operation = CMP_EQ;
 			}
 		|	NEQ
 			{
-				$$ = YYDatabase->newEmptyNode();
+				$$ = YYAST->newEmptyNode();
 				$$->operation = CMP_NEQ;
 			}
 		|	LT
 			{
-				$$ = YYDatabase->newEmptyNode();
+				$$ = YYAST->newEmptyNode();
 				$$->operation = CMP_LT;
 			}
 		|	GT
 			{
-				$$ = YYDatabase->newEmptyNode();
+				$$ = YYAST->newEmptyNode();
 				$$->operation = CMP_GT;
 			}
 		|	LE
 			{
-				$$ = YYDatabase->newEmptyNode();
+				$$ = YYAST->newEmptyNode();
 				$$->operation = CMP_LE;
 			}
 		|	GE
 			{
-				$$ = YYDatabase->newEmptyNode();
+				$$ = YYAST->newEmptyNode();
 				$$->operation = CMP_GE;
 			}
 		;
@@ -396,13 +404,13 @@ column_value_list:
 column_value:
 			STRING
 			{
-				$$ = YYDatabase->newEmptyNode();
+				$$ = YYAST->newEmptyNode();
 				$$->strval = $1;
 				$$->operation = VAL_CHAR;
 			}
 		|	NUMBER
 			{
-				$$ = YYDatabase->newEmptyNode();
+				$$ = YYAST->newEmptyNode();
 				$$->numval = $1;
 				$$->operation = VAL_NUMBER;
 			}
@@ -449,8 +457,3 @@ error_statment:
 /* --- end other --- */
 %%
 
-int yyerror(Database *YYDatabase, const char* str)
-{
-	/* dummy */
-	return 0;
-}
