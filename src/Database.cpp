@@ -1,7 +1,7 @@
-#include <iostream>
-#include <cstring>
 #include "Database.h"
 
+extern int yyparse(Database *YYDatabase);
+/*
 void Database::addRootNode(NodeAST* root)
 {
 	m_manageRoot.push_back(root);
@@ -38,21 +38,22 @@ void Database::processAST()
 	}
 	cleanAST();
 }
-
-void Database::cleanAST()
+*/
+Database::Database()
 {
-	for (auto it : m_manageArray)
-	{
-		delete [] it->strval;
-		delete it;
-	}
-	m_manageArray.clear();
-	m_manageRoot.clear();
+	db_delegate = this;
 }
-
 Database::~Database()
 {
-	if (m_manageRoot.size() != 0)
-		cleanAST();
+	m_ast.clean();
+}
+static Database* getInstance()
+{
+	return db_delegate;
 }
 
+void Database::run()
+{
+	printf("minisql> ");
+	yyparse(getInstance());
+}

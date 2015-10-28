@@ -70,6 +70,9 @@ class NodeManager
 		Node* newEmptyNode();
 		void setRootNode(Node* root);
 		Node* getRootNode(size_t pos);
+
+		vector<Node*>& getRootTree();
+		size_t getRootTreeSize();
 		void clean();
 };
 

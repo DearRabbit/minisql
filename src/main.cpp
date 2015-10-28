@@ -3,12 +3,9 @@
 #include <iostream>
 #include "Database.h"
 
-extern int yyparse(Database *YYDatabase);
-
 int main()
 {
 	Database a;
-	printf("minisql> ");
-	yyparse(&a);	
+	Database.getInstance()->run();
 	return 0;
 }

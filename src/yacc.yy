@@ -115,7 +115,7 @@ stmt:		QUIT CMD_FINISH
 			}
 		|	sql_list error_statment CMD_FINISH
 			{
-				YYDatabase->delErrRootNode();
+				YYDatabase->delLastRootNode();
 				YYDatabase->processAST();
 				goto processErrorToken;
 			}
