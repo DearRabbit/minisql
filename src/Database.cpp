@@ -2,9 +2,10 @@
 
 extern int yyparse (class NodeManager *YYAST);
 
-//initial uniptr
+// initial uniptr
 Database* Database::db_delegate;
 
+// Nothing special
 Database::Database()
 {
 	db_delegate = this;
@@ -17,14 +18,19 @@ Database* Database::getInstance()
 {
 	return db_delegate;
 }
+// Nothing special
 
 void Database::run()
 {
+	// for the first prompt.
 	printf("minisql> ");
 	yyparse(&m_ast);
 }
+
+// called by yyparse
 void Database::processAST()
 {
+	// TO-DO: use API to rewrite
 	int i = 0;
 	vector<Node*>& ast_root = m_ast.getRootTree();
 	printf("Do something\n");
