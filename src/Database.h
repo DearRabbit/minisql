@@ -15,6 +15,9 @@ class Database
 	private:
 		static Database* db_delegate;
 		NodeManager m_ast;
+		CatalogManager m_catMgr;
+		IndexManager m_idxMgr;
+		RecordManager m_recMgr;
 		
 	public:
 		Database();
@@ -31,5 +34,6 @@ class Database
 		void processAST();
 
 	private:
+
 };
 #endif //Database.h
