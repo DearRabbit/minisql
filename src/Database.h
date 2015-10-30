@@ -5,7 +5,8 @@
 #include <vector>
 #include "NodeManager.h"
 
-#if 0
+#define __COMBINE__ 0
+#if __COMBINE__
 #include "CatalogManager.h"
 #include "IndexManager.h"
 #include "RecordManager.h"
@@ -19,7 +20,7 @@ class Database
 		static Database* db_delegate;
 		NodeManager m_ast;
 
-#if 0
+#if __COMBINE__
 		CatalogManager m_catMgr;
 		IndexManager m_idxMgr;
 		RecordManager m_recMgr;
@@ -29,7 +30,6 @@ class Database
 		Database();
 		~Database();
 		static Database* getInstance();
-
 
 		// All things start from here!!
 		//   v:

@@ -2,6 +2,7 @@
 #define __NODEMGR_H__
 
 #include <vector>
+#include "macros.h"
 
 using std::vector;
 

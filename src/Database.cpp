@@ -64,6 +64,7 @@ bool Database::processSingleAST(Node* root)
 				returnVal = m_catMgr.new_table_def(root);
 				if (returnVal >= 0)
 				{
+					// always print 0
 					printf("Query OK, %d rows affected\n", returnVal);
 					return true;
 				}
@@ -77,7 +78,8 @@ bool Database::processSingleAST(Node* root)
 				if (returnVal >= 0)
 				{
 					// ought to success...
-					m_idxMgr.new_entry_idx(root);
+					m_idxMgr.new_index(root);
+					// always print 0
 					printf("Query OK, %d rows affected\n", returnVal);
 					return true;
 				}
@@ -90,6 +92,7 @@ bool Database::processSingleAST(Node* root)
 				returnVal = m_catMgr.delete_table_def(root);
 				if (returnVal >= 0)
 				{
+					// always print 0
 					printf("Query OK, %d rows affected\n", returnVal);
 					return true;
 				}
@@ -101,6 +104,7 @@ bool Database::processSingleAST(Node* root)
 				returnVal = m_catMgr.delete_index_def(root);
 				if (returnVal >= 0)
 				{
+					// always print 0
 					printf("Query OK, %d rows affected\n", returnVal);
 					return true;
 				}
@@ -112,11 +116,16 @@ bool Database::processSingleAST(Node* root)
 				returnVal = m_recMgr.new_record(root);
 				if (returnVal >= 0)
 				{
+					// print something.
 					printf("Query OK, %d rows affected\n", returnVal);
 					return true;
 				}
 				else
 					processQueryError(root, returnVal);
+			}
+		case OP_SELECT:
+			{
+				//returnVal = 
 			}
 		default: break;
 	}
