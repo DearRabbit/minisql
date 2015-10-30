@@ -4,9 +4,12 @@
 #include <iostream>
 #include <vector>
 #include "NodeManager.h"
+
+#if 0
 #include "CatalogManager.h"
 #include "IndexManager.h"
 #include "RecordManager.h"
+#endif
 
 using std::vector;
 
@@ -15,9 +18,12 @@ class Database
 	private:
 		static Database* db_delegate;
 		NodeManager m_ast;
+
+#if 0
 		CatalogManager m_catMgr;
 		IndexManager m_idxMgr;
 		RecordManager m_recMgr;
+#endif
 		
 	public:
 		Database();

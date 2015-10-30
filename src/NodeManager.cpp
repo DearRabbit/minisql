@@ -25,7 +25,7 @@ void NodeManager::setRootNode(Node* root)
 {
 	m_manageRoot.push_back(root);
 }
-Node* NodeManager::getRootNode(size_t pos)
+Node* NodeManager::getRootNode(size_t pos)const
 {
 	return m_manageRoot[pos];
 }
@@ -33,11 +33,11 @@ void NodeManager::delLastRootNode()
 {
 	m_manageRoot.pop_back();
 }
-vector<Node*>& NodeManager::getRootTree()
+const vector<Node*>& NodeManager::getRootTree()const
 {
 	return m_manageRoot;
 }
-size_t NodeManager::getRootTreeSize()
+size_t NodeManager::getRootTreeSize()const
 {
 	return m_manageRoot.size();
 }

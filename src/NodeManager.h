@@ -69,13 +69,13 @@ class NodeManager
 
 		Node* newEmptyNode();
 		void setRootNode(Node* root);
-		Node* getRootNode(size_t pos);
+		Node* getRootNode(size_t pos) const;
 		//   v: delete the last unfinished node,
 		//   v: for error processing in yyparse
 		void delLastRootNode();
 
-		vector<Node*>& getRootTree();
-		size_t getRootTreeSize();
+		const vector<Node*>& getRootTree() const;
+		size_t getRootTreeSize() const;
 		void clean();
 };
 
