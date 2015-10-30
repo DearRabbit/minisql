@@ -57,19 +57,11 @@ public:
 	int delete_index_def(Node* node);
 
 #if 0	
-	// function:
-
-	// ---
-	// return:
-	// - MINISQL_OK
-
 	int getTableDef(Node* node);
-
-	// function:
-	// Modify node to attach to it the index
-	// definition
-	int getIndexDef(Node* node);
 #endif
+
+	bool ifexist_index(Node* node);
+	bool ifexist_table(Node* node);
 
 	static CatalogManager * getInstance();
 private:

@@ -11,16 +11,18 @@ public:
 	IndexManager();
 	~IndexManager();
 	
-
 	// - function:
 	// Create a new .idx file( And construct a B+Tree if necessary).
-	// When the table if empty, no B+Tree will be constructed, that is,
+	// When the table is empty, no B+Tree will be constructed, that is,
 	// the index file is empty with only fileheader in it.
 	// - note:
 	// Must be called together with Catalogmgr::new_index_def().
 	// Index deletion happens in Catalogmgr::delete_index_def().
+	// The function also opens and reads a .db file in order to get
+	// the correct order and data of the specified column value to construct
+	// a new index B+ tree.
 	// - takes:
-	// -- node: A create index AST
+	// -- node: A create index AST.
 	// - returns:
 	// MINISQL_OK
 	// MINISQL_EIO: If the index already exists.
@@ -37,7 +39,7 @@ public:
 	// by recordmgr::new_record().
 	// - return:
 	// --- MINISQL_OK
-	// --- MINISQL_ERR: If there exists a record with the same key.
+	// --- MINISQL_ECONSTRAINT: If there exists a record with the same key.
 	// --- MINISQL_EIO: If the table does not exist.
 	int new_entry_idx(Node* node);
 
@@ -59,19 +61,19 @@ public:
 	// - note:
 	// Should be called according to select conditions.
 	// - takes:
-	// -- node: A select record AST. 
+	// -- node: A select from index AST, which should be constructed
+	// in the api level.
 	// -- curseTable: records position array.
 	// - return:
 	// --- MINISQL_OK
-	// --- MINISQL_EIO: If the table does not exist.
+	// --- MINISQL_EIO: If the .idx file does not exist.
 	int select_index(Node* node, CurseT** curseTable);
 
 	// - function:
 	// Further selection that happens on a curseTable.
 	// Modify curseTable to get further results.
-	// - note:
-	// rootAST should be refined somewhere(because this is not the first 
-	// search) for easier and faster searching.
+	// - note: A select from index AST, which should be constructed
+	// in the api level.
 	// - return:
 	// --- MINISQL_OK
 	// --- MINISQL_EIO: If the table does not exist.
