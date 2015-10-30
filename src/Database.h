@@ -40,6 +40,11 @@ class Database
 		void processAST();
 
 	private:
+
+		// parameter: Query Error node; 
+		// errorTpye in "macros.h"
+		void processQueryError(Node* root, int errorType);
+
 		// returns 1 on success
 		// returns 0 on failure	
 		//   v: process each query

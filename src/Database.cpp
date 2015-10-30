@@ -20,56 +20,103 @@ Database* Database::getInstance()
 }
 // Nothing special
 
+void Database::processQueryError(Node* root, int errorType)
+{
+	switch (errorType)
+	{
+		case MINISQL_ETYPE:
+
+			break;
+		case MINISQL_EIO:
+			{
+				switch (root->operation)
+				{
+					case OP_CREATE_TABLE:
+						fprintf(stderr, "Error: table %s already exists\n", root->strval);
+						break;
+					case OP_CREATE_INDEX:
+						fprintf(stderr, "Error: index %s already exists\n", root->strval);
+						break;
+					case OP_DROP_TABLE:
+						fprintf(stderr, "Error: no such table: %s\n", root->strval);
+						break;
+					case OP_DROP_INDEX:
+						fprintf(stderr, "Error: no such index: %s\n", root->strval);
+						break;
+					default: break;
+				}
+			}
+			break;
+		case MINISQL_ECONSTRAINT:
+			break;
+	}
+}
+
 bool Database::processSingleAST(Node* root)
 {
 	Node* ptr;
-	int effect_rows = 0;
-	switch(root->operation)
+	int returnVal = 0;
+	switch (root->operation)
 	{
 		case OP_CREATE_TABLE:
 			{
 				// v: return 1 if success
-				if (m_catMgr.new_table_def(root))
+				returnVal = m_catMgr.new_table_def(root);
+				if (returnVal >= 0)
 				{
-					printf("Query OK, %d rows affected\n", effect_rows);
+					printf("Query OK, %d rows affected\n", returnVal);
+					return true;
 				}
 				else
-					fprintf(stderr, "Error: table %s already exists\n", root->strval);
+					processQueryError(root, returnVal);
 			}
 			break;
 		case OP_CREATE_INDEX:
 			{
-				if (m_catMgr.new_index_def(root))
+				returnVal = m_catMgr.new_index_def(root);
+				if (returnVal >= 0)
 				{
 					// ought to success...
 					m_idxMgr.new_entry_idx(root);
-					printf("Query OK, %d rows affected\n", effect_rows);
+					printf("Query OK, %d rows affected\n", returnVal);
+					return true;
 				}
 				else
-					fprintf(stderr, "Error: index %s already exists\n", root->strval);
+					processQueryError(root, returnVal);
 			}
 			break;
 		case OP_DROP_TABLE:
 			{
-				if (m_catMgr.delete_table_def(root))
+				returnVal = m_catMgr.delete_table_def(root);
+				if (returnVal >= 0)
 				{
-					printf("Query OK, %d rows affected\n", effect_rows);
+					printf("Query OK, %d rows affected\n", returnVal);
+					return true;
 				}
 				else
-					fprintf(stderr, "Error: no such table: %s\n", root->strval);
+					processQueryError(root, returnVal);
 			}
 		case OP_DROP_INDEX:
 			{
-				if (m_catMgr.delete_index_def(root))
+				returnVal = m_catMgr.delete_index_def(root);
+				if (returnVal >= 0)
 				{
-					printf("Query OK, %d rows affected\n", effect_rows);
+					printf("Query OK, %d rows affected\n", returnVal);
+					return true;
 				}
 				else
-					fprintf(stderr, "Error: no such index: %s\n", root->strval);
+					processQueryError(root, returnVal);
 			}
 		case OP_INSERT:
 			{
-				
+				returnVal = m_recMgr.new_record(root);
+				if (returnVal >= 0)
+				{
+					printf("Query OK, %d rows affected\n", returnVal);
+					return true;
+				}
+				else
+					processQueryError(root, returnVal);
 			}
 		default: break;
 	}
