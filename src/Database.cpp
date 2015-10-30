@@ -20,6 +20,63 @@ Database* Database::getInstance()
 }
 // Nothing special
 
+bool Database::processSingleAST(Node* root)
+{
+	Node* ptr;
+	int effect_rows = 0;
+	switch(root->operation)
+	{
+		case OP_CREATE_TABLE:
+			{
+				// v: return 1 if success
+				if (m_catMgr.new_table_def(root))
+				{
+					printf("Query OK, %d rows affected\n", effect_rows);
+				}
+				else
+					fprintf(stderr, "Error: table %s already exists\n", root->strval);
+			}
+			break;
+		case OP_CREATE_INDEX:
+			{
+				if (m_catMgr.new_index_def(root))
+				{
+					// ought to success...
+					m_idxMgr.new_entry_idx(root);
+					printf("Query OK, %d rows affected\n", effect_rows);
+				}
+				else
+					fprintf(stderr, "Error: index %s already exists\n", root->strval);
+			}
+			break;
+		case OP_DROP_TABLE:
+			{
+				if (m_catMgr.delete_table_def(root))
+				{
+					printf("Query OK, %d rows affected\n", effect_rows);
+				}
+				else
+					fprintf(stderr, "Error: no such table: %s\n", root->strval);
+			}
+		case OP_DROP_INDEX:
+			{
+				if (m_catMgr.delete_index_def(root))
+				{
+					printf("Query OK, %d rows affected\n", effect_rows);
+				}
+				else
+					fprintf(stderr, "Error: no such index: %s\n", root->strval);
+			}
+		case OP_INSERT:
+			{
+				
+			}
+		default: break;
+	}
+	return false;
+}
+
+//public
 void Database::run()
 {
 	// for the first prompt.
@@ -31,17 +88,12 @@ void Database::run()
 void Database::processAST()
 {
 	// TO-DO: use API to rewrite
-	int i = 0;
 	const vector<Node*>& ast_root = m_ast.getRootTree();
 	printf("Do something\n");
 
 	for (auto it : ast_root)
 	{
-		printf("---------%03d---------:\n", ++i);
-		if (it->strval)
-			printf("String:%s\n", it->strval);
-		printf("num:%lf\n", it->numval);
-		printf("op:%d\n", it->operation);
+		processSingleAST(it);
 	}
 	m_ast.clean();
 }

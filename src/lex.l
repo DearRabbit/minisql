@@ -23,9 +23,11 @@ drop		{ return DROP; }
 insert		{ return INSERT; }
 delete		{ return DELETE; }
 select		{ return SELECT; }
+show		{ return SHOW; }
 ^execfile	{ return EXECFILE; }
 ^quit		{ return QUIT; }
 
+tables		{ return TABLES_IN_SHOW; }
 table		{ return TABLE; }
 index		{ return INDEX; }
 values		{ return VALUES; }

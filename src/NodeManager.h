@@ -15,6 +15,8 @@ enum operationName
 	OP_SELECT,
 	OP_INSERT,
 	OP_DELECT,
+	OP_SHOWTABLES,
+
 	OP_AND,
 	OP_OR,
 

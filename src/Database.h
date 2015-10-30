@@ -32,7 +32,7 @@ class Database
 
 
 		// All things start from here!!
-		//   v
+		//   v:
 		void run();
 		
 		// methods of AST Processing
@@ -40,6 +40,9 @@ class Database
 		void processAST();
 
 	private:
-
+		// returns 1 on success
+		// returns 0 on failure	
+		//   v: process each query
+		bool processSingleAST(Node* root);
 };
 #endif //Database.h

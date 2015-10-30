@@ -57,8 +57,10 @@ int yyerror(NodeManager *YYAST, const char* str)
 %token ON
 %token OR
 %token PRIMARY
+%token SHOW
 %token SELECT
 %token TABLE
+%token TABLES_IN_SHOW
 %token UNIQUE
 %token VALUES
 %token QUIT
@@ -72,12 +74,12 @@ int yyerror(NodeManager *YYAST, const char* str)
 %token GE
 
 %type <treeNode> sql 
-	create drop select insert delete 
-	table_name index_name column_name 
+	create drop select insert delete display
+	table_name index_name column_name show_tables
 	create_table_element_list create_table_element
 	column_def data_type opt_where comparison
 	table_constraint_def expr_list expr 
-	column_value_list column_value
+	column_value_list column_value insert_val_list
 
 %type <numval> column_def_opt
 
@@ -155,7 +157,8 @@ sql:
 		|	drop
 		|	select 
 		|	insert
-		|	delete 
+		|	delete
+		|	display
 		;
 
 /* --- create --- */ 
@@ -169,8 +172,8 @@ create:
 		|	CREATE INDEX index_name ON table_name '(' column_name ')'
 			{
 				$3->operation = OP_CREATE_INDEX;
-				$3->rightSon = $5;
-				$5->rightSon = $7;
+				$3->leftSon = $5;
+				$3->rightSon = $7;
 				$$ = $3;
 			}
 		;
@@ -207,7 +210,7 @@ create_table_element_list:
 			create_table_element
 		|	create_table_element_list ',' create_table_element
 			{
-				$1->rightSon = $3;
+				$3->leftSon = $1;
 				$$ = $1;
 			}
 		;
@@ -224,8 +227,8 @@ column_def:
 				$$->strval = $1;
 				if ($3 != 0)
 				{
-					$$->leftSon = YYAST->newEmptyNode();
-					$$->leftSon->operation = $3;
+					$$->rightSon = YYAST->newEmptyNode();
+					$$->rightSon->operation = $3;
 				}
 			}
 		;
@@ -384,20 +387,34 @@ comparison:
 
 /* --- insert --- */
 insert:	
-			INSERT INTO table_name VALUES '(' column_value_list ')'
+			INSERT INTO table_name VALUES insert_val_list
 			{
 				$3->operation = OP_INSERT;
-				$3->rightSon = $6;
+				$3->rightSon = $5;
 				$$ = $3;
 			}
 		;
+
+insert_val_list:
+			'(' column_value_list ')'
+			{
+				$$ = $2;
+			}
+		|	insert_val_list ',' '(' column_value_list ')'
+			{
+				$4->rightSon = $1;
+				$$ = $4;
+			}
+		;
+
+
 
 column_value_list:
 			column_value
 		|	column_value_list ',' column_value
 			{
-				$1->rightSon = $3;
-				$$ = $1;
+				$3->leftSon = $1;
+				$$ = $3;
 			}
 		;
 
@@ -432,6 +449,18 @@ delete:
 
 
 /* --- other --- */
+display:
+			show_tables
+		;
+
+show_tables:
+			SHOW TABLES_IN_SHOW
+			{
+				$$ = YYAST->newEmptyNode();
+				$$->operation = OP_SHOWTABLES;
+			}
+		;
+
 error_statment:
 			error	
 			{
