@@ -2,6 +2,17 @@
 
 // MINISQL_MACROS
 
+#define MINISQL_PROMPT1() printf("minisql> ")
+#define MINISQL_PROMPT2() printf("       > ")
+
+/* throw exception when failed */
+#define STRDUP_NEW(dest, src) \
+{\
+	dest = new char[strlen(src) + 1];\
+	strcpy(dest, src);\
+}
+
+
 typedef void CurseT;
 
 #define	MINISQL_OK			(0)				// query success

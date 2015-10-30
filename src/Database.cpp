@@ -48,25 +48,51 @@ void Database::processQueryError(Node* root, int errorType)
 			}
 			break;
 		case MINISQL_ECONSTRAINT:
+			fprintf(stderr, "Error: UNIQUE constraint failed: %s\n", root->strval);
 			break;
 	}
 }
 
 // API as private
-bool db_createTable(Node *root)
+bool Database::db_createTable(Node *root)
 {
-	int returnVal = m_catMgr.new_table_def(root);
-	if (returnVal >= 0)
+	if (ifexist_table(root) == false)
 	{
-		// always print 0
-		printf("Query OK, %d rows affected\n", returnVal);
-		return true;
+		processQueryError(root, MINISQL_EIO);
+		return false;
 	}
-	else
-		processQueryError(root, returnVal);
-	return false
+
+	// !! ignore multiple primary key
+	// !! take the lastdef of primary key
+	Node* currentPtr = root;
+	while (ptr != nullptr)
+	{
+		// Some dangers...
+		// always at the first of list(last def)
+		if (ptr->rightSon != nullptr && ptr->rightSon->operation == DEF_PRIMARY)
+		{	
+			Node* tmpPtr = m_ast.newEmptyNode();
+			// index name
+			STRDUP_NEW(tmpPtr->strval, "_def");
+			// column name
+			tmpPtr->rightSon = ptr->rightSon;
+			// table name
+			tmpPtr->leftSon = root;
+
+			// create new index, should be succeed!!!
+			m_catMgr.new_index_def(tmpPtr);
+			break;
+		}
+		ptr = ptr->leftSon;
+	}
+
+	// already check in ifexist;
+	m_catMgr.new_table_def(root);
+	// always print 0
+	printf("Query OK, 0 rows affected\n");
+	return true;
 }
-bool db_createIndex(Node *root)
+bool Database::db_createIndex(Node *root)
 {
 	int returnVal = m_catMgr.new_index_def(root);
 	if (returnVal >= 0)
@@ -81,7 +107,7 @@ bool db_createIndex(Node *root)
 		processQueryError(root, returnVal);
 	return false;
 }
-bool db_dropTable(Node *root)
+bool Database::db_dropTable(Node *root)
 {
 	int returnVal = m_catMgr.delete_table_def(root);
 	if (returnVal >= 0)
@@ -94,7 +120,7 @@ bool db_dropTable(Node *root)
 		processQueryError(root, returnVal);
 	return false;
 }
-bool db_dropIndex(Node *root)
+bool Database::db_dropIndex(Node *root)
 {
 	int returnVal = m_catMgr.delete_index_def(root);
 	if (returnVal >= 0)
@@ -107,18 +133,39 @@ bool db_dropIndex(Node *root)
 		processQueryError(root, returnVal);
 	return false;
 }
-bool db_insertVal(Node *root)
+bool Database::db_insertVal(Node *root)
+{
+	int returnVal;
+	if (m_catMgr.ifexist_index(root))
+	{
+		 returnVal = m_idxMgr.new_entry_idx(root);
+		 if (returnVal < 0)
+		 {
+		 	processQueryError(root, returnVal);
+			return false;
+		 }
+	}
+
+	returnVal = m_recMgr.new_record(root);
+	if (returnVal >= 0)
+	{
+		// print something
+		printf("Query OK, %d rows affected\n", returnVal);
+		return true;
+	}
+	else
+		processQueryError(root, returnVal);
+	return false;
+}
+bool Database::db_deleteVal(Node *root)
 {
 	return false;
 }
-bool db_selectVal(Node *root)
+bool Database::db_selectVal(Node *root)
 {
 	return false;
 }
-bool db_deleteVal(Node *root)
-{
-	return false;
-}
+
 
 bool Database::processSingleAST(Node* root)
 {
@@ -132,13 +179,14 @@ bool Database::processSingleAST(Node* root)
 			return db_dropTable(root);
 		case OP_DROP_INDEX:
 			return db_createIndex(root);
-		//!!!!
+		// !!!!!
 		case OP_INSERT:
 			return db_insertVal(root);
 		case OP_SELECT:
 			return db_selectVal(root);
 		case OP_DELECT:
 			return db_deleteVal(root);
+		// !!!!!
 		default: return false;
 	}
 }

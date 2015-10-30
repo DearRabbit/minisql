@@ -13,10 +13,6 @@ extern FILE *yyin;
 int ErrorFlag;
 char ErrorToken [ErrorTokenLength];
 
-#define MINISQL_PROMPT1() printf("minisql> ")
-#define MINISQL_PROMPT2() printf("       > ")
-
-
 int yyerror(NodeManager *YYAST, const char* str)
 {
 	/* dummy */
@@ -167,6 +163,7 @@ create:
 			{
 				$3->operation = OP_CREATE_TABLE;
 				$3->rightSon = $5;
+				$3->leftSon = $5;
 				$$ = $3;
 			}
 		|	CREATE INDEX index_name ON table_name '(' column_name ')'

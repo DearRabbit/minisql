@@ -3,18 +3,6 @@
 #include <cstdlib>
 #include "Database.h"
 #include "yacc.tab.hh"
-
-
-#define MINISQL_PROMPT1() printf("minisql> ")
-#define MINISQL_PROMPT2() printf("       > ")
-
-/* throw exception when failed */
-#define STRDUP_NEW(dest, src) \
-{\
-	dest = new char[strlen(src) + 1];\
-	strcpy(dest, src);\
-}
-
 %}
 
 %%
