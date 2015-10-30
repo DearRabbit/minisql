@@ -11,28 +11,26 @@ public:
 	RecordManager();
 	~RecordManager();
 
-	// - function:
-	// create a .db file(nothing else)
-	// --
-	// return 1 on success
-	int new_table( Node* node );
-
-	// - function:
-	// delete a .db file
-	int delete_table( Node* node );		
+	// Table creation and deletion all happens in Catalogmgr
 	
 	// - function:
 	// Insert a record into a table(.db file).
 	// - note:
 	// If an index on the table exists, call idxmgr::new_entry_idx() as well
+	// - return:
+	// n : number of line affected.
+	// MINISQL_ERR: If the record violates primary key or unique constraints.
+	// MINISQL_EIO: If the table does not exist.
 	int new_record( Node* node );		// insert record
 	
 	// - function:
 	// Delete a record from a table(.db file).
 	// - Note: Should be called with Indexmgr::delete_leaf_idx
 	// when there is at least one index on the table
-	// -- node: A delete AST. Must also contain a subtree 
-	// with table definition.(See also Catalogmgr::getTableDef())
+	// -- node: A delete ASTNode.
+	// - return:
+	// n : number of lines afftected.( theoretically won't return error)
+	// MINISQL_EIO: The specified table does not exist.
 	int delete_record( Node* node);
 
 	// - function:
@@ -41,14 +39,20 @@ public:
 	// with table definition.(See also Catalogmgr::getTableDef())
 	// -- curseTable: record block number & offset array, opaque to api.
 	// Hasn't been initialized.
+	// - return:
+	// n: number of lines affected.
+	// MINISQL_EIO: The table does not exist.
 	int select_record( Node* node, CurseT** curseTable);
 	
 	// - function:
 	// Further selection that happens on a curseTable.
 	// Modify curseTable to get further results.
+	// The result in the curseTable is final after calling this function.
 	// - note:
 	// node should be refined somewhere(because this is not the first 
 	// search)for easier and faster searching.
+	// - return:
+	// n: Number of lines selected.
 	int select_record( Node* node, CurseT* curseTable);
 
 	// - function:

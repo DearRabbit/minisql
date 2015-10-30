@@ -13,30 +13,32 @@ public:
 	
 
 	// - function:
-	// Create a new .idx file(nothing else)
+	// Create a new .idx file( And construct a B+Tree if necessary).
+	// When the table if empty, no B+Tree will be constructed, that is,
+	// the index file is empty with only fileheader in it.
 	// - note:
-	// Must be called together with Catalogmgr::new_index_def()
+	// Must be called together with Catalogmgr::new_index_def().
+	// Index deletion happens in Catalogmgr::delete_index_def().
 	// - takes:
 	// -- node: A create index AST
 	// - returns:
-	// 1 on success
-	int new_index(Node* node);		
-	
-	// - function:
-	// Delete a .idx file
-	// - note:
-	// Must be called together with Catalogmgr::delete_index_def()
-	// - takes:
-	// -- node: A delete index AST
-	int delete_index(Node* node);
+	// MINISQL_OK
+	// MINISQL_EIO: If the index already exists.
+	int new_index(Node* node);
+		
+	// drop index file happens in Catalogmgr.
 
 	// - function:
 	// Insert a new entry into an .idx file
 	// - note:
 	// Should be called during insertions
 	// - takes:
-	// -- node: An insert AST. Must be modified 
-	// by Catalogmgr::getIndexDef().
+	// -- node: An insert ASTNode, which is the same one taken
+	// by recordmgr::new_record().
+	// - return:
+	// --- MINISQL_OK
+	// --- MINISQL_ERR: If there exists a record with the same key.
+	// --- MINISQL_EIO: If the table does not exist.
 	int new_entry_idx(Node* node);
 
 	// - function:
@@ -45,8 +47,11 @@ public:
 	// Should be called during deletion 
 	// if an index is created on the table
 	// - takes:
-	// -- node: A delete record AST. Must be 
-	// modified by Catalogmgr::getIndexDef().
+	// -- node: An delete ASTNode, which is the same one taken
+	// by recordmgr::delete_record()
+	// - return:
+	// --- MINISQL_OK
+	// --- MINISQL_EIO: If the table does not exist.
 	int delete_entry_idx(Node* node);
 
 	// - function:
@@ -54,9 +59,11 @@ public:
 	// - note:
 	// Should be called according to select conditions.
 	// - takes:
-	// -- node: A select record AST. Must
-	// be modified by Catalogmgr::getIndexDef()
-	// -- curseTable: records position array 
+	// -- node: A select record AST. 
+	// -- curseTable: records position array.
+	// - return:
+	// --- MINISQL_OK
+	// --- MINISQL_EIO: If the table does not exist.
 	int select_index(Node* node, CurseT** curseTable);
 
 	// - function:
@@ -65,6 +72,9 @@ public:
 	// - note:
 	// rootAST should be refined somewhere(because this is not the first 
 	// search) for easier and faster searching.
+	// - return:
+	// --- MINISQL_OK
+	// --- MINISQL_EIO: If the table does not exist.
 	int select_index( Node* node, CurseT* curseTable);
 
 	static IndexManager* getInstance();
