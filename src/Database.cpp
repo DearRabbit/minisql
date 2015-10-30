@@ -52,84 +52,95 @@ void Database::processQueryError(Node* root, int errorType)
 	}
 }
 
+// API as private
+bool db_createTable(Node *root)
+{
+	int returnVal = m_catMgr.new_table_def(root);
+	if (returnVal >= 0)
+	{
+		// always print 0
+		printf("Query OK, %d rows affected\n", returnVal);
+		return true;
+	}
+	else
+		processQueryError(root, returnVal);
+	return false
+}
+bool db_createIndex(Node *root)
+{
+	int returnVal = m_catMgr.new_index_def(root);
+	if (returnVal >= 0)
+	{
+		// ought to success...
+		m_idxMgr.new_index(root);
+		// always print 0
+		printf("Query OK, %d rows affected\n", returnVal);
+		return true;
+	}
+	else
+		processQueryError(root, returnVal);
+	return false;
+}
+bool db_dropTable(Node *root)
+{
+	int returnVal = m_catMgr.delete_table_def(root);
+	if (returnVal >= 0)
+	{
+		// always print 0
+		printf("Query OK, %d rows affected\n", returnVal);
+		return true;
+	}
+	else
+		processQueryError(root, returnVal);
+	return false;
+}
+bool db_dropIndex(Node *root)
+{
+	int returnVal = m_catMgr.delete_index_def(root);
+	if (returnVal >= 0)
+	{
+		// always print 0
+		printf("Query OK, %d rows affected\n", returnVal);
+		return true;
+	}
+	else
+		processQueryError(root, returnVal);
+	return false;
+}
+bool db_insertVal(Node *root)
+{
+	return false;
+}
+bool db_selectVal(Node *root)
+{
+	return false;
+}
+bool db_deleteVal(Node *root)
+{
+	return false;
+}
+
 bool Database::processSingleAST(Node* root)
 {
-	Node* ptr;
-	int returnVal = 0;
 	switch (root->operation)
 	{
 		case OP_CREATE_TABLE:
-			{
-				// v: return 1 if success
-				returnVal = m_catMgr.new_table_def(root);
-				if (returnVal >= 0)
-				{
-					// always print 0
-					printf("Query OK, %d rows affected\n", returnVal);
-					return true;
-				}
-				else
-					processQueryError(root, returnVal);
-			}
-			break;
+			return db_createTable(root);
 		case OP_CREATE_INDEX:
-			{
-				returnVal = m_catMgr.new_index_def(root);
-				if (returnVal >= 0)
-				{
-					// ought to success...
-					m_idxMgr.new_index(root);
-					// always print 0
-					printf("Query OK, %d rows affected\n", returnVal);
-					return true;
-				}
-				else
-					processQueryError(root, returnVal);
-			}
-			break;
+			return db_createIndex(root);
 		case OP_DROP_TABLE:
-			{
-				returnVal = m_catMgr.delete_table_def(root);
-				if (returnVal >= 0)
-				{
-					// always print 0
-					printf("Query OK, %d rows affected\n", returnVal);
-					return true;
-				}
-				else
-					processQueryError(root, returnVal);
-			}
+			return db_dropTable(root);
 		case OP_DROP_INDEX:
-			{
-				returnVal = m_catMgr.delete_index_def(root);
-				if (returnVal >= 0)
-				{
-					// always print 0
-					printf("Query OK, %d rows affected\n", returnVal);
-					return true;
-				}
-				else
-					processQueryError(root, returnVal);
-			}
+			return db_createIndex(root);
+		//!!!!
 		case OP_INSERT:
-			{
-				returnVal = m_recMgr.new_record(root);
-				if (returnVal >= 0)
-				{
-					// print something.
-					printf("Query OK, %d rows affected\n", returnVal);
-					return true;
-				}
-				else
-					processQueryError(root, returnVal);
-			}
+			return db_insertVal(root);
 		case OP_SELECT:
-			{
-				//returnVal = 
-			}
-		default: break;
+			return db_selectVal(root);
+		case OP_DELECT:
+			return db_deleteVal(root);
+		default: return false;
 	}
-	return false;
 }
 
 //public
