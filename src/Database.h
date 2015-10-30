@@ -45,6 +45,15 @@ class Database
 		// errorTpye in "macros.h"
 		void processQueryError(Node* root, int errorType);
 
+		// API
+		bool db_createTable(Node *root);
+		bool db_createIndex(Node *root);
+		bool db_dropTable(Node *root);
+		bool db_dropIndex(Node *root);
+		bool db_insertVal(Node *root);
+		bool db_selectVal(Node *root);
+		bool db_deleteVal(Node *root);
+
 		// returns 1 on success
 		// returns 0 on failure	
 		//   v: process each query
