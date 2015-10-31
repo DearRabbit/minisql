@@ -22,7 +22,8 @@ Database* Database::getInstance()
 
 void Database::processQueryError(Node* root, int errorType)
 {
-	switch (errorType)
+	// to push down
+	/*switch (errorType)
 	{
 		case MINISQL_ETYPE:
 
@@ -50,7 +51,7 @@ void Database::processQueryError(Node* root, int errorType)
 		case MINISQL_ECONSTRAINT:
 			fprintf(stderr, "Error: UNIQUE constraint failed: %s\n", root->strval);
 			break;
-	}
+	}*/
 }
 
 // API as private
