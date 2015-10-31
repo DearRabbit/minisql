@@ -37,7 +37,7 @@ void Database::processQueryError(Node* root, int errorType)
 					case OP_CREATE_INDEX:
 						fprintf(stderr, "Error: index %s already exists\n", root->strval);
 						break;
-					case OP_DROP_TABLE:
+					case OP_DROP_TABLE: case OP_INSERT:
 						fprintf(stderr, "Error: no such table: %s\n", root->strval);
 						break;
 					case OP_DROP_INDEX:
@@ -56,7 +56,7 @@ void Database::processQueryError(Node* root, int errorType)
 // API as private
 bool Database::db_createTable(Node *root)
 {
-	if (ifexist_table(root) == false)
+	if (m_catMgr.ifexist_table(root) == false)
 	{
 		processQueryError(root, MINISQL_EIO);
 		return false;
@@ -64,7 +64,7 @@ bool Database::db_createTable(Node *root)
 
 	// !! ignore multiple primary key
 	// !! take the lastdef of primary key
-	Node* currentPtr = root;
+	Node* ptr = root;
 	while (ptr != nullptr)
 	{
 		// Some dangers...
@@ -112,6 +112,7 @@ bool Database::db_dropTable(Node *root)
 	int returnVal = m_catMgr.delete_table_def(root);
 	if (returnVal >= 0)
 	{
+		m_catMgr.delete_index_def(root);
 		// always print 0
 		printf("Query OK, %d rows affected\n", returnVal);
 		return true;
@@ -135,7 +136,30 @@ bool Database::db_dropIndex(Node *root)
 }
 bool Database::db_insertVal(Node *root)
 {
-	int returnVal;
+	if (m_catMgr.ifexist_table(root))
+	{
+		processQueryError(root, MINISQL_EIO);
+		return false;
+	}
+
+	// **!!!! new func
+	// a node mgr should be in catalogMgr
+	// parameter can be string
+	Node* columnDef = m_catMgr.getTableDef(root);
+	Node* valPtr = root->right;
+	while (valPtr != nullptr && columnDef != nullptr)
+	{
+		// insert into index
+		if (columnDef->rightSon)
+			// :m_idxMgr.new_entry_idx(:node);
+		// :m_recMgr.new_record(:node);
+	}
+	// TO_DO: error processing
+	//        && rollback()
+
+	return true;
+
+	/*int returnVal;
 	if (m_catMgr.ifexist_index(root))
 	{
 		 returnVal = m_idxMgr.new_entry_idx(root);
@@ -155,7 +179,7 @@ bool Database::db_insertVal(Node *root)
 	}
 	else
 		processQueryError(root, returnVal);
-	return false;
+	return false;*/
 }
 bool Database::db_deleteVal(Node *root)
 {
