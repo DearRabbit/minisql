@@ -1,5 +1,4 @@
-#ifndef __RECORD__MANAGER__
-#define __RECORD__MANAGER__
+#pragma once
 
 #include "NodeManager.h"
 
@@ -11,28 +10,24 @@ public:
 	RecordManager();
 	~RecordManager();
 
-	// Table creation and deletion all happens in Catalogmgr
+	// Table creation and deletion all happen in Catalogmgr
 	
 	// - function:
 	// Insert a record into a table(.db file).
-	// - note:
-	// If an index on the table exists, call idxmgr::new_entry_idx() as well
 	// - return:
-	// n : number of line affected.
-	// MINISQL_ERR: If the record violates primary key or unique constraints.
-	// MINISQL_EIO: If the table does not exist.
-	int new_record( Node* node );		// insert record
+	// n : number of line affected, currently 1;
+	int new_record(Node* node);		// insert record
 	
 	// - function:
-	// Delete a record from a table(.db file).
-	// - Note: Should be called with Indexmgr::delete_leaf_idx
-	// when there is at least one index on the table
-	// -- node: A delete ASTNode.
+	// Delete records from a table(.db file).
+	// - Note: CurseT contains blocks' num & offset
 	// - return:
-	// n : number of lines afftected.( theoretically won't return error)
-	// MINISQL_EIO: The specified table does not exist.
-	int delete_record( Node* node);
+	// n : number of lines afftected.()
+	int delete_record(char* tableName, CurseT& curseTable);
 
+
+	// TO-DO: merge 2 function v:v
+	/*
 	// - function:
 	// Dumb selection with linear search.
 	// -- node: A select AST. Must also contain a subtree
@@ -41,29 +36,27 @@ public:
 	// Hasn't been initialized.
 	// - return:
 	// n: number of lines affected.
-	// MINISQL_EIO: The table does not exist.
-	int select_record( Node* node, CurseT** curseTable);
+	int select_record( Node* node, CurseT** curseTable);*/
 	
 	// - function:
-	// Further selection that happens on a curseTable.
-	// Modify curseTable to get further results.
-	// The result in the curseTable is final after calling this function.
+	// Selection with linear search.
+	// If curseTable(vector of pos pairs) is empty,
+	// 	then search the whole table(rarely);
+	// Else do Further selection on a curseTable,
+	// 	Modify curseTable to get further results.
 	// - note:
-	// node should be refined somewhere(because this is not the first 
-	// search)for easier and faster searching.
+	// -- node: a single node containing a expr.
+	// -- curseTable: record block number & offset array, opaque to api.
 	// - return:
 	// n: Number of lines selected.
-	int select_record( Node* node, CurseT* curseTable);
+	int select_record(Node* node, CurseT& curseTable);
 
 	// - function:
 	// Print searching results.
-	// -- node: Any AST with table name in it.
 	// -- curseTable: record position table.
-	int print_record( Node* node, CurseT* curseTable);
+	// Undefined print style;
+	int print_record(char* tableName, CurseT& curseTable);
 
 	static RecordManager* getInstance();
 private:
 };
-
-
-#endif
