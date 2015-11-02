@@ -1,5 +1,4 @@
-#ifndef __DATABASE_H__
-#define __DATABASE_H__
+#pragma once
 
 #include <iostream>
 #include <vector>
@@ -59,4 +58,3 @@ class Database
 		//   v: process each query
 		bool processSingleAST(Node* root);
 };
-#endif //Database.h

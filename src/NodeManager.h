@@ -1,5 +1,4 @@
-#ifndef __NODEMGR_H__
-#define __NODEMGR_H__
+#pragma once
 
 #include <vector>
 #include "macros.h"
@@ -81,5 +80,3 @@ class NodeManager
 		size_t getRootTreeSize() const;
 		void clean();
 };
-
-#endif

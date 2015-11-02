@@ -57,44 +57,69 @@ void Database::processQueryError(Node* root, int errorType)
 // API as private
 bool Database::db_createTable(Node *root)
 {
-	if (m_catMgr.ifexist_table(root) == false)
+	try
 	{
-		processQueryError(root, MINISQL_EIO);
+		m_catMgr.assertExistTable(root->strval);
+	}
+	catch (TableExistException)
+	{
+		fprintf(stderr, "Error: table %s already exists\n", root->strval);
 		return false;
 	}
 
+	Node* ptr = root;
 	// !! ignore multiple primary key
 	// !! take the lastdef of primary key
-	Node* ptr = root;
 	while (ptr != nullptr)
 	{
-		// Some dangers...
 		// always at the first of list(last def)
 		if (ptr->rightSon != nullptr && ptr->rightSon->operation == DEF_PRIMARY)
-		{	
-			Node* tmpPtr = m_ast.newEmptyNode();
-			// index name
-			STRDUP_NEW(tmpPtr->strval, "_def");
-			// column name
-			tmpPtr->rightSon = ptr->rightSon;
-			// table name
-			tmpPtr->leftSon = root;
-
+		{
 			// create new index, should be succeed!!!
-			m_catMgr.new_index_def(tmpPtr);
+			// **!!  v:to be modified
+			//       v:check again!!
+			//       v             v:table       v:column               v:default_name
+			m_catMgr.new_index_def(root->strval, ptr->rightSon->strval, "_def");
 			break;
 		}
 		ptr = ptr->leftSon;
 	}
 
-	// already check in ifexist;
 	m_catMgr.new_table_def(root);
 	// always print 0
 	printf("Query OK, 0 rows affected\n");
 	return true;
 }
+class IndexExistException {};
+class TableNonExistException {};
+class ColumnNonExistException {};
+class NotUniqueKeyException {};
 bool Database::db_createIndex(Node *root)
 {
+	try
+	{
+		//                 v:table name           v:column name
+		assertNotUniqueKey(root->leftSon->strval, root->rightSon->strval);
+	}
+	catch (TableNonExistException)
+	{
+		fprintf(stderr, "Error: no such table: %s\n", root->strval);
+		return false;
+	}
+	catch (ColumnNonExistException)
+	{
+		fprintf(stderr, "Error: table %s has no column named %s\n",\
+			root->leftSon->strval, root->rightSon->strval);
+		return false;
+	}
+	catch (NotUniqueKeyException)
+	{
+		fprintf(stderr, "Error: column %s is not a unique key\n",\
+			root->rightSon->strval);
+		return false;
+	}
+
+	/*
 	int returnVal = m_catMgr.new_index_def(root);
 	if (returnVal >= 0)
 	{
@@ -104,9 +129,7 @@ bool Database::db_createIndex(Node *root)
 		printf("Query OK, %d rows affected\n", returnVal);
 		return true;
 	}
-	else
-		processQueryError(root, returnVal);
-	return false;
+	*/
 }
 bool Database::db_dropTable(Node *root)
 {

@@ -1,5 +1,4 @@
-#ifndef __INDEX__MANAGER__
-#define __INDEX__MANAGER__
+#pragma once
 
 #include "NodeManager.h"
 
@@ -82,5 +81,3 @@ public:
 	static IndexManager* getInstance();
 private:
 };
-
-#endif

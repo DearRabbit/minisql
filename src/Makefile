@@ -30,4 +30,4 @@ yacc.tab.cc yacc.tab.h: yacc.yy
 	$(YACC) yacc.yy
 
 clean: 
-	rm lex.yy.* yacc.tab.* *.o a.out yacc.output
+	rm -f lex.yy.* yacc.tab.* *.o a.out yacc.output
