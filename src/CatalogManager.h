@@ -10,7 +10,7 @@ class IndexNonExistException:SQLCatException {};
 class ColumnNonExistException:SQLCatException {};
 class NotUniqueKeyException:SQLCatException {};
 
-class CatalogManager throw (SQLCatException)
+class CatalogManager
 {
 private:
 	static CatalogManager * cm_delegate;
