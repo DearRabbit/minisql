@@ -2,17 +2,20 @@
 
 #include "NodeManager.h"
 
-class TableExistException {};
-class IndexExistException {};
-class TableNonExistException {};
-class ColumnNonExistException {};
-class NotUniqueKeyException {};
+class SQLCatException {};
+class TableExistException:SQLCatException {};
+class IndexExistException:SQLCatException {};
+class TableNonExistException:SQLCatException {};
+class IndexNonExistException:SQLCatException {};
+class ColumnNonExistException:SQLCatException {};
+class NotUniqueKeyException:SQLCatException {};
 
-class CatalogManager
-// throw (TableExistException, TableNonExistException)
+class CatalogManager throw (SQLCatException)
 {
 private:
 	static CatalogManager * cm_delegate;
+	NodeManager m_columndef;
+	
 public:
 	CatalogManager();
 	~CatalogManager();
@@ -49,7 +52,7 @@ public:
 	// return:
 	// - MINISQL_OK
 	// - MINISQL_EIO
-	int delete_table_def(Node* node);
+	int delete_table_def(char* tableName);
 
 	// function:
 	// Delete an index definition from a .frm file
@@ -58,20 +61,17 @@ public:
 	// return:
 	// - MINISQL_OK
 	// - MINISQL_EIO
-	int delete_index_def(Node* node);
+	int delete_index_def(char* indexName);
 
-	// function:
-	// check if there is "tableName" existed;
-	// use private func?: ifexist_table(); ****
-	// throw TableExistException, catch by create_table;
+	// function groups:
+	// assert if cond;
 	void assertExistTable(char* tableName) throw(TableExistException);
 	void assertExistIndexName(char* indexName) throw(IndexExistException);
-
 	void assertNonExistTable(char* tableName) throw(TableNonExistException);
+	void assertNonExistIndex(char* indexName) throw(IndexNonExistException);
 	void assertNonExistColumn(char* tableName, char* columnName) throw(ColumnNonExistException);
 	void assertNotUniqueKey(char* tableName, char* columnName) throw(NotUniqueKeyException);
-
-	bool ifexist_index(Node* node);
+	// function groups:
 
 	static CatalogManager * getInstance();
 private:

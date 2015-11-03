@@ -42,7 +42,7 @@ class Database
 
 		// parameter: Query Error node; 
 		// errorTpye in "macros.h"
-		void processQueryError(Node* root, int errorType);
+		// void processQueryError(Node* root, int errorType);
 
 		// API
 		bool db_createTable(Node *root);

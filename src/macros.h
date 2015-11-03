@@ -12,7 +12,6 @@
 	strcpy(dest, src);\
 }
 
-
 typedef void CurseT;
 
 #define	MINISQL_OK			(0)				// query success

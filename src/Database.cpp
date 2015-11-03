@@ -20,40 +20,6 @@ Database* Database::getInstance()
 }
 // Nothing special
 
-void Database::processQueryError(Node* root, int errorType)
-{
-	// to push down
-	/*switch (errorType)
-	{
-		case MINISQL_ETYPE:
-
-			break;
-		case MINISQL_EIO:
-			{
-				switch (root->operation)
-				{
-					case OP_CREATE_TABLE:
-						fprintf(stderr, "Error: table %s already exists\n", root->strval);
-						break;
-					case OP_CREATE_INDEX:
-						fprintf(stderr, "Error: index %s already exists\n", root->strval);
-						break;
-					case OP_DROP_TABLE: case OP_INSERT:
-						fprintf(stderr, "Error: no such table: %s\n", root->strval);
-						break;
-					case OP_DROP_INDEX:
-						fprintf(stderr, "Error: no such index: %s\n", root->strval);
-						break;
-					default: break;
-				}
-			}
-			break;
-		case MINISQL_ECONSTRAINT:
-			fprintf(stderr, "Error: UNIQUE constraint failed: %s\n", root->strval);
-			break;
-	}*/
-}
-
 // API as private
 bool Database::db_createTable(Node *root)
 {
@@ -90,10 +56,6 @@ bool Database::db_createTable(Node *root)
 	printf("Query OK, 0 rows affected\n");
 	return true;
 }
-class IndexExistException {};
-class TableNonExistException {};
-class ColumnNonExistException {};
-class NotUniqueKeyException {};
 bool Database::db_createIndex(Node *root)
 {
 	try
@@ -119,50 +81,54 @@ bool Database::db_createIndex(Node *root)
 		return false;
 	}
 
-	/*
-	int returnVal = m_catMgr.new_index_def(root);
-	if (returnVal >= 0)
-	{
-		// ought to success...
-		m_idxMgr.new_index(root);
-		// always print 0
-		printf("Query OK, %d rows affected\n", returnVal);
-		return true;
-	}
-	*/
+	m_catMgr.new_index_def(root);
+	// always print 0
+	printf("Query OK, 0 rows affected\n");
+	return true;
 }
 bool Database::db_dropTable(Node *root)
 {
-	int returnVal = m_catMgr.delete_table_def(root);
-	if (returnVal >= 0)
+	try
 	{
-		m_catMgr.delete_index_def(root);
-		// always print 0
-		printf("Query OK, %d rows affected\n", returnVal);
-		return true;
+		m_catMgr.assertNonExistTable(root->strval);
 	}
-	else
-		processQueryError(root, returnVal);
-	return false;
+	catch (TableNonExistException)
+	{
+		fprintf(stderr, "Error: no such table: %s\n", root->strval);
+		return false;
+	}
+	
+	m_catMgr.delete_table_def(root->strval);
+	// always print 0
+	printf("Query OK, 0 rows affected\n");
+	return true;
 }
 bool Database::db_dropIndex(Node *root)
 {
-	int returnVal = m_catMgr.delete_index_def(root);
-	if (returnVal >= 0)
+	try
 	{
-		// always print 0
-		printf("Query OK, %d rows affected\n", returnVal);
-		return true;
+		m_catMgr.assertNonExistIndex(root->strval);
 	}
-	else
-		processQueryError(root, returnVal);
-	return false;
+	catch (IndexNonExistException)
+	{
+		fprintf(stderr, "Error: no such index: %s\n", root->strval);
+		return false;
+	}
+
+	m_catMgr.delete_index_def(root->strval);
+	// always print 0
+	printf("Query OK, 0 rows affected\n");
+	return true;
 }
 bool Database::db_insertVal(Node *root)
 {
-	if (m_catMgr.ifexist_table(root))
+	try
 	{
-		processQueryError(root, MINISQL_EIO);
+		m_catMgr.assertNonExistTable(root->strval);
+	}
+	catch (TableNonExistException)
+	{
+		fprintf(stderr, "Error: no such table: %s\n", root->strval);
 		return false;
 	}
 
@@ -217,26 +183,27 @@ bool Database::db_selectVal(Node *root)
 
 bool Database::processSingleAST(Node* root)
 {
+	bool result;
 	switch (root->operation)
 	{
 		case OP_CREATE_TABLE:
-			return db_createTable(root);
+			result = db_createTable(root);
 		case OP_CREATE_INDEX:
-			return db_createIndex(root);
+			result = db_createIndex(root);
 		case OP_DROP_TABLE:
-			return db_dropTable(root);
+			result = db_dropTable(root);
 		case OP_DROP_INDEX:
-			return db_createIndex(root);
-		// !!!!!
+			result = db_createIndex(root);
 		case OP_INSERT:
-			return db_insertVal(root);
+			result = db_insertVal(root);
 		case OP_SELECT:
-			return db_selectVal(root);
+			result = db_selectVal(root);
 		case OP_DELECT:
-			return db_deleteVal(root);
+			result = db_deleteVal(root);
 		// !!!!!
-		default: return false;
+		default: result = false;
 	}
+	return result;
 }
 
 //public
