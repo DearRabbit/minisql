@@ -1,5 +1,4 @@
-#ifndef __BUFFER__MANAGER__
-#define __BUFFER__MANAGER__
+#pragma once
 
 #define __LRU__CLOCK__
 
@@ -12,7 +11,7 @@
 #define _DEBUG 0
 
 const int BLOCK_SIZE   = 4096;
-const int BLOCK_NUMBER = 4;
+const int BLOCK_NUMBER = 512;
 //const int MAX_FILE_NUMBER = 4;
 
 class Pager;
@@ -167,6 +166,3 @@ private:
 
 	void bm_setRecentlyUsed(const int block_id);
 };
-
-
-#endif
