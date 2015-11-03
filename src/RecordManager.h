@@ -48,7 +48,7 @@ public:
 	// -- node: a single node containing a expr.
 	// -- curseTable: record block number & offset array, opaque to api.
 	// - return:
-	// n: Number of lines selected.
+	// n: Number of lines selected.(size of curseTable)
 	int select_record(Node* node, CurseT& curseTable);
 
 	// - function:

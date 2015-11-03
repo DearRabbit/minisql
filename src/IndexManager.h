@@ -10,6 +10,7 @@ public:
 	IndexManager();
 	~IndexManager();
 	
+	// ?? useless ??
 	// - function:
 	// Create a new .idx file( And construct a B+Tree if necessary).
 	// When the table is empty, no B+Tree will be constructed, that is,
@@ -64,19 +65,20 @@ public:
 	// in the api level.
 	// -- curseTable: records position array.
 	// - return:
-	// --- MINISQL_OK
-	// --- MINISQL_EIO: If the .idx file does not exist.
-	int select_index(Node* node, CurseT** curseTable);
+	// return nothing now
+	// int select_index(Node* node, CurseT** curseTable);
 
 	// - function:
-	// Further selection that happens on a curseTable.
-	// Modify curseTable to get further results.
-	// - note: A select from index AST, which should be constructed
-	// in the api level.
+	// If curseTable(vector of pos pairs) is empty,
+	// 	then search the whole table(rarely);
+	// Else do Further selection on a curseTable,
+	// 	Modify curseTable to get further results.
+	// - note:
+	// -- node: a single node containing a expr.
+	// -- curseTable: record block number & offset array, opaque to api.
 	// - return:
-	// --- MINISQL_OK
-	// --- MINISQL_EIO: If the table does not exist.
-	int select_index( Node* node, CurseT* curseTable);
+	// n: Number of lines selected.(size of curseTable)
+	int select_index(Node* node, CurseT& curseTable);
 
 	static IndexManager* getInstance();
 private:
