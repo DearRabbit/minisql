@@ -12,9 +12,9 @@ public:
 	
 	// ?? useless ??
 	// - function:
-	// Create a new .idx file( And construct a B+Tree if necessary).
-	// When the table is empty, no B+Tree will be constructed, that is,
-	// the index file is empty with only fileheader in it.
+	// Create a new B+Tree in idx file(create in catMgr)
+	// When the table is empty, no B+Tree will be constructed,
+	// that is, the index file is empty with only fileheader in it.
 	// - note:
 	// Must be called together with Catalogmgr::new_index_def().
 	// Index deletion happens in Catalogmgr::delete_index_def().
@@ -23,9 +23,9 @@ public:
 	// a new index B+ tree.
 	// - takes:
 	// -- node: A create index AST.
+	// -- 
 	// - returns:
-	// MINISQL_OK
-	// MINISQL_EIO: If the index already exists.
+	// return nothing
 	int new_index(Node* node);
 		
 	// drop index file happens in Catalogmgr.
