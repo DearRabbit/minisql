@@ -16,7 +16,7 @@
 
 // Is it okay to put it here?
 // block no.+block offset
-typedef std::vector<std::pair<int, int>> CurseT;
+typedef std::vector< std::pair<int, int> > CurseT;
 
 #define	MINISQL_OK			(0)				// query success
 #define	MINISQL_ETYPE		(-1)			// Type error
