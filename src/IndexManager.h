@@ -10,26 +10,22 @@ public:
 	IndexManager();
 	~IndexManager();
 	
-	// ?? useless ??
+	// merge two:
+
 	// - function:
 	// Create a new B+Tree in idx file(create in catMgr)
 	// When the table is empty, no B+Tree will be constructed,
 	// that is, the index file is empty with only fileheader in it.
 	// - note:
-	// Must be called together with Catalogmgr::new_index_def().
-	// Index deletion happens in Catalogmgr::delete_index_def().
-	// The function also opens and reads a .db file in order to get
-	// the correct order and data of the specified column value to construct
-	// a new index B+ tree.
+	// Must be called together with Catalogmgr::new_index_def(),
+	// The function also requires data(sequential) from RecMgr 
+	// to build B+Tree
 	// - takes:
-	// -- node: A create index AST.
-	// -- 
+	// -- node: sequential data from table(rec)
 	// - returns:
 	// return nothing
 	int new_index(Node* node);
 		
-	// drop index file happens in Catalogmgr.
-
 	// - function:
 	// Insert a new entry into an .idx file
 	// - note:
@@ -41,7 +37,9 @@ public:
 	// --- MINISQL_OK
 	// --- MINISQL_ECONSTRAINT: If there exists a record with the same key.
 	// --- MINISQL_EIO: If the table does not exist.
-	int new_entry_idx(Node* node);
+	// int new_entry_idx(Node* node);
+
+	// Index deletion happens in Catalogmgr::delete_index_def().
 
 	// - function:
 	// Delete an entry from a .idx file
@@ -54,7 +52,7 @@ public:
 	// - return:
 	// --- MINISQL_OK
 	// --- MINISQL_EIO: If the table does not exist.
-	int delete_entry_idx(Node* node);
+	int delete_entry_idx(Node* node, CursePair& curseTable);
 
 	// - function:
 	// Raw select from a select AST 
@@ -78,7 +76,7 @@ public:
 	// -- curseTable: record block number & offset array, opaque to api.
 	// - return:
 	// n: Number of lines selected.(size of curseTable)
-	int select_index(Node* node, CurseT& curseTable);
+	int select_index(Node* node, std::vector<CursePair>& curseTable);
 
 	static IndexManager* getInstance();
 private:

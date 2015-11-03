@@ -23,7 +23,7 @@ public:
 	// - Note: CurseT contains blocks' num & offset
 	// - return:
 	// n : number of lines afftected.()
-	int delete_record(char* tableName, CurseT& curseTable);
+	int delete_record(char* tableName, std::vector<CursePair>& curseTable);
 
 
 	// TO-DO: merge 2 function v:v
@@ -49,13 +49,13 @@ public:
 	// -- curseTable: record block number & offset array, opaque to api.
 	// - return:
 	// n: Number of lines selected.(size of curseTable)
-	int select_record(Node* node, CurseT& curseTable);
+	int select_record(Node* node, std::vector<CursePair>& curseTable);
 
 	// - function:
 	// Print searching results.
 	// -- curseTable: record position table.
 	// Undefined print style;
-	int print_record(char* tableName, CurseT& curseTable);
+	int print_record(char* tableName, std::vector<CursePair>& curseTable);
 
 	static RecordManager* getInstance();
 private:
