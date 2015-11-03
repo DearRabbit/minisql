@@ -1,9 +1,6 @@
 #pragma once
 
-#include <vector>
 #include "macros.h"
-
-using std::vector;
 
 enum operationName
 {	
@@ -60,10 +57,10 @@ class NodeManager
 		// For a single line, multiple queries
 		// may generate more than one AST.
 		// 
-		vector<Node*> m_manageRoot;
+		std::vector<Node*> m_manageRoot;
 		// Storing ALL of the node, simplifies
 		// the management of memory.
-		vector<Node*> m_manageArray;
+		std::vector<Node*> m_manageArray;
 
 	public:
 		NodeManager();
@@ -76,7 +73,7 @@ class NodeManager
 		//   v: for error processing in yyparse
 		void delLastRootNode();
 
-		const vector<Node*>& getRootTree() const;
+		const std::vector<Node*>& getRootTree() const;
 		size_t getRootTreeSize() const;
 		void clean();
 };

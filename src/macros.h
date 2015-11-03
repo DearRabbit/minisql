@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 // MINISQL_MACROS
 
 #define MINISQL_PROMPT1() printf("minisql> ")
@@ -12,7 +14,9 @@
 	strcpy(dest, src);\
 }
 
-typedef void CurseT;
+// Is it okay to put it here?
+// block no.+block offset
+typedef std::vector<std::pair<int, int>> CurseT;
 
 #define	MINISQL_OK			(0)				// query success
 #define	MINISQL_ETYPE		(-1)			// Type error

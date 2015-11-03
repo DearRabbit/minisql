@@ -218,7 +218,7 @@ void Database::run()
 void Database::processAST()
 {
 	// TO-DO: use API to rewrite
-	const vector<Node*>& ast_root = m_ast.getRootTree();
+	const std::vector<Node*>& ast_root = m_ast.getRootTree();
 	printf("Do something\n");
 
 	for (auto it : ast_root)

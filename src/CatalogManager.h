@@ -29,9 +29,8 @@ public:
 	// ---
 	// node - A create AST
 	// ---
-	// return : 
-	// - MINISQL_OK
-	// - MINISQL_EIO		
+	// return : 		
+	// nothing now.
 	int new_table_def(Node* node);
 
 	// function:
@@ -42,7 +41,7 @@ public:
 	// and different from sqlite or mysql)
 	// ---
 	// return:
-	// - MINISQL_OK
+	// nothing now.
 	int new_index_def(char* tableName, char* columnName, char* indexName);
 
 	// function:
@@ -50,8 +49,7 @@ public:
 	// Delete a .db file
 	// ---
 	// return:
-	// - MINISQL_OK
-	// - MINISQL_EIO
+	// nothing now.
 	int delete_table_def(char* tableName);
 
 	// function:
@@ -59,8 +57,7 @@ public:
 	// Delete a .idx file
 	// ---
 	// return:
-	// - MINISQL_OK
-	// - MINISQL_EIO
+	// nothing now.
 	int delete_index_def(char* indexName);
 
 	// function groups:
