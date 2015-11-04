@@ -24,7 +24,7 @@ public:
 	// -- node: sequential data from table(rec)
 	// - returns:
 	// return nothing
-	int new_index(Node* node);
+	int new_index(Node* data);
 		
 	// - function:
 	// Insert a new entry into an .idx file

@@ -52,6 +52,10 @@ public:
 	int select_record(Node* node, std::vector<CursePair>& curseTable);
 
 	// - function:
+	// Get data when constructing
+	Node* get_column_data(char* tableName, char* columnName);
+
+	// - function:
 	// Print searching results.
 	// -- curseTable: record position table.
 	// Undefined print style;

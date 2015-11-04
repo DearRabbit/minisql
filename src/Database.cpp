@@ -81,7 +81,18 @@ bool Database::db_createIndex(Node *root)
 		return false;
 	}
 
-	m_catMgr.new_index_def(root);
+	//// check if there's idx already!
+	// if (ifexist_column_idx())
+	// {
+	// 	Node *data = m_recMgr.get_column_data(table,column);
+	// 	m_catMgr.new_index_def(root);
+	// 	m_idxMgr.new_index(data);
+	// }
+	// else
+	// {
+	// 	m_catMgr.new_index_def(root);
+	// }
+	
 	// always print 0
 	printf("Query OK, 0 rows affected\n");
 	return true;
