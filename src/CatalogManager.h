@@ -2,13 +2,25 @@
 
 #include "NodeManager.h"
 
-class SQLCatException {};
-class TableExistException:SQLCatException {};
-class IndexExistException:SQLCatException {};
-class TableNonExistException:SQLCatException {};
-class IndexNonExistException:SQLCatException {};
-class ColumnNonExistException:SQLCatException {};
-class NotUniqueKeyException:SQLCatException {};
+class TableExistException {};
+class IndexExistException {};
+class TableNonExistException {};
+class IndexNonExistException {};
+class ColumnNonExistException {};
+class NotUniqueKeyException {};
+class TypeMismatchException 
+{
+public:
+	// -if mismatch at column 'name'
+	//  then str = "at column 'name'"
+	// -else 
+	//  then str = "too many values"
+	TypeMismatchException(std::string& str)
+	{
+		columnName = str;
+	};
+	std::string columnName;
+};
 
 class CatalogManager
 {
@@ -41,7 +53,10 @@ public:
 	// and different from sqlite or mysql)
 	// ---
 	// return:
-	// nothing now.
+	// !!!!!!*************!!!!! maybe make it a macro
+	// -if there's already a index on the column,
+	//  return 1(to reassign)
+	// -else return 0
 	int new_index_def(char* tableName, char* columnName, char* indexName);
 
 	// function:
@@ -60,14 +75,26 @@ public:
 	// nothing now.
 	int delete_index_def(char* indexName);
 
+	// function:
+	// Check if the 
+
+	// function groups:
+	// test if condis true;
+	// call by assertfunc
+	bool ifexist_table(char* tableName);
+	bool ifexist_index(char* indexName);
+	bool ifexist_index_on_column(char* tableName, char* columnName);
+
 	// function groups:
 	// assert if cond;
 	void assertExistTable(char* tableName) throw(TableExistException);
-	void assertExistIndexName(char* indexName) throw(IndexExistException);
+	void assertExistIndex(char* indexName) throw(IndexExistException);
 	void assertNonExistTable(char* tableName) throw(TableNonExistException);
 	void assertNonExistIndex(char* indexName) throw(IndexNonExistException);
 	void assertNonExistColumn(char* tableName, char* columnName) throw(ColumnNonExistException);
 	void assertNotUniqueKey(char* tableName, char* columnName) throw(NotUniqueKeyException);
+
+	void assertCheckColumnType(Node* root) throw(TypeMismatchException); 
 	// function groups:
 
 	static CatalogManager * getInstance();

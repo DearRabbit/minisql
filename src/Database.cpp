@@ -58,40 +58,43 @@ bool Database::db_createTable(Node *root)
 }
 bool Database::db_createIndex(Node *root)
 {
+	Node* tableName = root->leftSon->strval;
+	Node* columnName = root->rightSon->strval;
+	Node* indexName = root->strval;
 	try
 	{
-		//                 v:table name           v:column name
-		assertNotUniqueKey(root->leftSon->strval, root->rightSon->strval);
+		// maybe put inside
+		m_catMgr.assertNotUniqueKey(tableName, columnName);
+		m_catMgr.assertNonExistIndex(indexName);
 	}
 	catch (TableNonExistException)
 	{
-		fprintf(stderr, "Error: no such table: %s\n", root->strval);
+		fprintf(stderr, "Error: no such table: %s\n", tableName);
 		return false;
 	}
 	catch (ColumnNonExistException)
 	{
-		fprintf(stderr, "Error: table %s has no column named %s\n",\
-			root->leftSon->strval, root->rightSon->strval);
+		fprintf(stderr, "Error: table %s has no column named %s\n", tableName, columnName);
 		return false;
 	}
 	catch (NotUniqueKeyException)
 	{
-		fprintf(stderr, "Error: column %s is not a unique key\n",\
-			root->rightSon->strval);
+		fprintf(stderr, "Error: column %s is not a unique key\n", columnName);
 		return false;
 	}
-
-	//// check if there's idx already!
-	// if (ifexist_column_idx())
-	// {
-	// 	Node *data = m_recMgr.get_column_data(table,column);
-	// 	m_catMgr.new_index_def(root);
-	// 	m_idxMgr.new_index(data);
-	// }
-	// else
-	// {
-	// 	m_catMgr.new_index_def(root);
-	// }
+	catch (IndexExistException)
+	{
+		fprintf(stderr, "Error: index %s already exists\n", indexName);
+		return false;
+	}
+	
+	// check if there's idx on the column already!
+	// if not, new index in idxmgr
+	if (m_catMgr.new_index_def(tableName, columnName, indexName))
+	{
+		Node *data = m_recMgr.get_column_data(tableName, columnName);
+		m_idxMgr.new_index(/* more things? */data);
+	}
 	
 	// always print 0
 	printf("Query OK, 0 rows affected\n");
@@ -135,11 +138,17 @@ bool Database::db_insertVal(Node *root)
 {
 	try
 	{
-		m_catMgr.assertNonExistTable(root->strval);
+		//m_catMgr.assertNonExistTable(root->strval)
+		m_catMgr.assertCheckColumnType(root);
 	}
 	catch (TableNonExistException)
 	{
 		fprintf(stderr, "Error: no such table: %s\n", root->strval);
+		return false;
+	}
+	catch (TypeMismatchException e)
+	{
+		fprintf(stderr, "Error: type mismatch: %s\n", e.columnName.c_str());		
 		return false;
 	}
 

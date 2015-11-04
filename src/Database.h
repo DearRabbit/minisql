@@ -1,7 +1,6 @@
 #pragma once
 
 #include <iostream>
-#include <vector>
 #include "NodeManager.h"
 
 #define __COMBINE__ 0
@@ -10,8 +9,6 @@
 #include "IndexManager.h"
 #include "RecordManager.h"
 #endif
-
-using std::vector;
 
 class Database
 {
