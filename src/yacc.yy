@@ -388,6 +388,7 @@ insert:
 			{
 				$3->operation = OP_INSERT;
 				$3->rightSon = $5;
+				$3->leftSon = $5;
 				$$ = $3;
 			}
 		;

@@ -3,7 +3,7 @@
 #include <iostream>
 #include "NodeManager.h"
 
-#define __COMBINE__ 0
+#define __COMBINE__ 1
 #if __COMBINE__
 #include "CatalogManager.h"
 #include "IndexManager.h"

@@ -2,26 +2,6 @@
 
 #include "NodeManager.h"
 
-class TableExistException {};
-class IndexExistException {};
-class TableNonExistException {};
-class IndexNonExistException {};
-class ColumnNonExistException {};
-class NotUniqueKeyException {};
-class TypeMismatchException 
-{
-public:
-	// -if mismatch at column 'name'
-	//  then str = "at column 'name'"
-	// -else 
-	//  then str = "too many values"
-	TypeMismatchException(std::string& str)
-	{
-		columnName = str;
-	};
-	std::string columnName;
-};
-
 class CatalogManager
 {
 private:
@@ -40,6 +20,7 @@ public:
 	// Create a new .db file, insert fileheader.
 	// ---
 	// node - A create AST
+	// inverted sequence
 	// ---
 	// return : 		
 	// nothing now.
@@ -76,13 +57,16 @@ public:
 	int delete_index_def(char* indexName);
 
 	// function:
-	// Check if the 
+	// Return the ColumnDef of table 'name'
+	// point to last column of def
+	Node* get_column_def(char* tableName);
 
 	// function groups:
 	// test if condis true;
 	// call by assertfunc
 	bool ifexist_table(char* tableName);
 	bool ifexist_index(char* indexName);
+	bool if_unique_key(char* tableName, char* columnName);
 	bool ifexist_index_on_column(char* tableName, char* columnName);
 
 	// function groups:
@@ -93,9 +77,6 @@ public:
 	void assertNonExistIndex(char* indexName) throw(IndexNonExistException);
 	void assertNonExistColumn(char* tableName, char* columnName) throw(ColumnNonExistException);
 	void assertNotUniqueKey(char* tableName, char* columnName) throw(NotUniqueKeyException);
-
-	void assertCheckColumnType(Node* root) throw(TypeMismatchException); 
-	// function groups:
 
 	static CatalogManager * getInstance();
 private:

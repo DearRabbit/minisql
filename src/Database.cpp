@@ -138,12 +138,47 @@ bool Database::db_insertVal(Node *root)
 {
 	try
 	{
-		//m_catMgr.assertNonExistTable(root->strval)
-		m_catMgr.assertCheckColumnType(root);
+		// v: put it in that
+		m_catMgr.assertNonExistTable(root->strval);
+		Node *ptrDef = get_column_def(root->strval);
+		
+		Node *ptrData = root->leftSon;
+
+		while (ptrData != nullptr)
+		{
+			if (ptrDef == nullptr)
+			{
+				throw TypeMismatchException("too many values");
+			}
+			if ((ptrData->strval == nullptr && ptrDef->operation == VAL_CHAR) ||\
+				(ptrData->strval != nullptr && ptrDef->operation != VAL_CHAR))
+			{
+				throw TypeMismatchException(string("at column ")+string(ptrDef->strval));
+			}
+			if (if_unique_key(root->strval, ptrDef->strval))
+			{
+				//                          v:tableName   v:columnName
+				if (ifexist_index_on_column(root->strval, ptrDef->strval))
+				{
+					m_idxMgr.assertMultipleKey(root->strval, ptrDef->strval, ptrData);
+				}
+				else
+				{
+					m_recMgr.assertMultipleKey(root->strval, ptrDef->strval, ptrData);
+				}
+			}
+			ptrData = ptrData->leftSon;
+			ptrDef = ptrDef->leftSon;
+		}
 	}
 	catch (TableNonExistException)
 	{
 		fprintf(stderr, "Error: no such table: %s\n", root->strval);
+		return false;
+	}
+	catch (MultipleKeyException e)
+	{
+		fprintf(stderr, "Error: UNIQUE constraint failed: %s\n", e.name.c_str());
 		return false;
 	}
 	catch (TypeMismatchException e)
@@ -152,24 +187,12 @@ bool Database::db_insertVal(Node *root)
 		return false;
 	}
 
-	// **!!!! new func
-	// a node mgr should be in catalogMgr
-	// parameter can be string
-	Node* columnDef = m_catMgr.getTableDef(root);
-	Node* valPtr = root->right;
-	while (valPtr != nullptr && columnDef != nullptr)
-	{
-		// insert into index
-		if (columnDef->rightSon)
-			// :m_idxMgr.new_entry_idx(:node);
-		// :m_recMgr.new_record(:node);
-	}
-	// TO_DO: error processing
-	//        && rollback()
+	int returnVal;
 
+	// currently print 1
+	printf("Query OK, %d rows affected\n", returnVal);
 	return true;
-
-	/*int returnVal;
+	/*
 	if (m_catMgr.ifexist_index(root))
 	{
 		 returnVal = m_idxMgr.new_entry_idx(root);
@@ -181,15 +204,7 @@ bool Database::db_insertVal(Node *root)
 	}
 
 	returnVal = m_recMgr.new_record(root);
-	if (returnVal >= 0)
-	{
-		// print something
-		printf("Query OK, %d rows affected\n", returnVal);
-		return true;
-	}
-	else
-		processQueryError(root, returnVal);
-	return false;*/
+	*/
 }
 bool Database::db_deleteVal(Node *root)
 {
@@ -238,7 +253,7 @@ void Database::run()
 void Database::processAST()
 {
 	// TO-DO: use API to rewrite
-	const std::vector<Node*>& ast_root = m_ast.getRootTree();
+	const vector<Node*>& ast_root = m_ast.getRootTree();
 	printf("Do something\n");
 
 	for (auto it : ast_root)

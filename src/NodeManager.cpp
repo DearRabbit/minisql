@@ -33,7 +33,7 @@ void NodeManager::delLastRootNode()
 {
 	m_manageRoot.pop_back();
 }
-const std::vector<Node*>& NodeManager::getRootTree()const
+const vector<Node*>& NodeManager::getRootTree()const
 {
 	return m_manageRoot;
 }

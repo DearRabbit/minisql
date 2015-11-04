@@ -2,6 +2,8 @@
 
 #include <vector>
 #include <string>
+using std::string;
+using std::vector;
 
 // MINISQL_MACROS
 
@@ -41,3 +43,34 @@ typedef std::pair<int, int> CursePair;
 
 #define  BUFFER_FLAG_DIRTY		(1)
 #define  BUFFER_FLAG_NONDIRTY   (0)
+
+class TableExistException {};
+class IndexExistException {};
+class TableNonExistException {};
+class IndexNonExistException {};
+class ColumnNonExistException {};
+class NotUniqueKeyException {};
+class TypeMismatchException
+{
+public:
+	// -if mismatch at column 'name'
+	//  then str = "at column 'name'"
+	// -else if data > def
+	//  then str = "too many values"
+	// -else if data < def
+	//  then str = "too few values"
+	TypeMismatchException(string& str)
+	{
+		columnName = str;
+	};
+	string columnName;
+};
+class MultipleKeyException
+{
+public:
+	MultipleKeyException(char* tableName, char* columnName)
+	{
+		name = string(tableName)+string(".")+string(columnName);
+	};
+	string name;
+};
