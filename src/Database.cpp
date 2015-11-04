@@ -58,9 +58,9 @@ bool Database::db_createTable(Node *root)
 }
 bool Database::db_createIndex(Node *root)
 {
-	Node* tableName = root->leftSon->strval;
-	Node* columnName = root->rightSon->strval;
-	Node* indexName = root->strval;
+	char* tableName = root->leftSon->strval;
+	char* columnName = root->rightSon->strval;
+	char* indexName = root->strval;
 	try
 	{
 		// maybe put inside
@@ -140,7 +140,7 @@ bool Database::db_insertVal(Node *root)
 	{
 		// v: put it in that
 		m_catMgr.assertNonExistTable(root->strval);
-		Node *ptrDef = get_column_def(root->strval);
+		Node *ptrDef = m_catMgr.get_column_def(root->strval);
 		
 		Node *ptrData = root->leftSon;
 
@@ -150,15 +150,14 @@ bool Database::db_insertVal(Node *root)
 			{
 				throw TypeMismatchException("too many values");
 			}
-			if ((ptrData->strval == nullptr && ptrDef->operation == VAL_CHAR) ||\
-				(ptrData->strval != nullptr && ptrDef->operation != VAL_CHAR))
+			if (CHECK_TYPE(ptrDef, ptrData))
 			{
 				throw TypeMismatchException(string("at column ")+string(ptrDef->strval));
 			}
-			if (if_unique_key(root->strval, ptrDef->strval))
+			if (m_catMgr.if_unique_key(root->strval, ptrDef->strval))
 			{
 				//                          v:tableName   v:columnName
-				if (ifexist_index_on_column(root->strval, ptrDef->strval))
+				if (m_catMgr.ifexist_index_on_column(root->strval, ptrDef->strval))
 				{
 					m_idxMgr.assertMultipleKey(root->strval, ptrDef->strval, ptrData);
 				}
@@ -169,6 +168,10 @@ bool Database::db_insertVal(Node *root)
 			}
 			ptrData = ptrData->leftSon;
 			ptrDef = ptrDef->leftSon;
+		}
+		if (ptrDef != nullptr)
+		{
+			throw TypeMismatchException("too many values");
 		}
 	}
 	catch (TableNonExistException)
@@ -187,33 +190,52 @@ bool Database::db_insertVal(Node *root)
 		return false;
 	}
 
-	int returnVal;
-
+	int returnVal = m_recMgr.new_record(root);
 	// currently print 1
 	printf("Query OK, %d rows affected\n", returnVal);
 	return true;
-	/*
-	if (m_catMgr.ifexist_index(root))
-	{
-		 returnVal = m_idxMgr.new_entry_idx(root);
-		 if (returnVal < 0)
-		 {
-		 	processQueryError(root, returnVal);
-			return false;
-		 }
-	}
-
-	returnVal = m_recMgr.new_record(root);
-	*/
-}
-bool Database::db_deleteVal(Node *root)
-{
-	return false;
 }
 bool Database::db_selectVal(Node *root)
 {
+	try
+	{
+		m_catMgr.assertNonExistTable(root->strval);
+	}
+	catch (TableNonExistException)
+	{
+		fprintf(stderr, "Error: no such table: %s\n", root->strval);
+		return false;
+	}
+
+	vector<CursePair> cursor;
+	Node* ptrDef = m_catMgr.get_column_def(root);
+	//// git start
+	// if(ifexist_idx(tablename))
+	// 	idx.select(table,cursor)
+
+	m_recMgr.print_record(root->strval, cursor);
+	// always print 0
+	printf("Query OK, 0 rows affected\n");
 	return false;
 }
+bool Database::db_deleteVal(Node *root)
+{
+	try
+	{
+		m_catMgr.assertNonExistTable(root->strval);
+	}
+	catch (TableNonExistException)
+	{
+		fprintf(stderr, "Error: no such table: %s\n", root->strval);
+		return false;
+	}
+
+	int returnVal;
+	returnVal = m_recMgr.new_record(root);
+	printf("Query OK, %d rows affected\n", returnVal);
+	return false;
+}
+
 
 
 bool Database::processSingleAST(Node* root)

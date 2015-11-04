@@ -60,6 +60,7 @@ public:
 	// Return the ColumnDef of table 'name'
 	// point to last column of def
 	Node* get_column_def(char* tableName);
+	Node* get_column_def(char* tableName, char* columnName);
 
 	// function groups:
 	// test if condis true;

@@ -49,7 +49,7 @@ public:
 	// -- curseTable: record block number & offset array, opaque to api.
 	// - return:
 	// n: Number of lines selected.(size of curseTable)
-	int select_record(Node* node, std::vector<CursePair>& curseTable);
+	int select_record(Node* node, vector<CursePair>& curseTable);
 
 	// - function:
 	// Get data when constructing
@@ -59,7 +59,10 @@ public:
 	// Print searching results.
 	// -- curseTable: record position table.
 	// Undefined print style;
-	int print_record(char* tableName, std::vector<CursePair>& curseTable);
+	int print_record(char* tableName, vector<CursePair>& curseTable);
+
+	// to do 
+	void assertMultipleKey(char* tableName, char* columnName, Node* data);
 
 	static RecordManager* getInstance();
 private:

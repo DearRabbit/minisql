@@ -59,7 +59,7 @@ public:
 	//  then str = "too many values"
 	// -else if data < def
 	//  then str = "too few values"
-	TypeMismatchException(string& str)
+	TypeMismatchException(string str)
 	{
 		columnName = str;
 	};

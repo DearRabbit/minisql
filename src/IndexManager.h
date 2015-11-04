@@ -68,7 +68,7 @@ public:
 
 	// - function:
 	// If curseTable(vector of pos pairs) is empty,
-	// 	then search the whole table(rarely);
+	// 	then add record to curseTable;
 	// Else do Further selection on a curseTable,
 	// 	Modify curseTable to get further results.
 	// - note:
@@ -76,7 +76,10 @@ public:
 	// -- curseTable: record block number & offset array, opaque to api.
 	// - return:
 	// n: Number of lines selected.(size of curseTable)
-	int select_index(Node* node, std::vector<CursePair>& curseTable);
+	int select_index(Node* node, vector<CursePair>& curseTable);
+
+	// to do 
+	void assertMultipleKey(char* tableName, char* columnName, Node* data);
 
 	static IndexManager* getInstance();
 private:

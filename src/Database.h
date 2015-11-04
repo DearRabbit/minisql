@@ -3,24 +3,23 @@
 #include <iostream>
 #include "NodeManager.h"
 
-#define __COMBINE__ 1
-#if __COMBINE__
 #include "CatalogManager.h"
 #include "IndexManager.h"
 #include "RecordManager.h"
-#endif
+
+#define CHECK_TYPE(def, data) \ 
+	(((data)->strval == nullptr && (def)->operation == VAL_CHAR) || \
+	 ((data)->strval != nullptr && (def)->operation != VAL_CHAR))
 
 class Database
 {
 	private:
 		static Database* db_delegate;
 		NodeManager m_ast;
-
-#if __COMBINE__
 		CatalogManager m_catMgr;
 		IndexManager m_idxMgr;
 		RecordManager m_recMgr;
-#endif
+
 		
 	public:
 		Database();
