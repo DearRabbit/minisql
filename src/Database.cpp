@@ -211,17 +211,42 @@ bool Database::db_insertVal(Node *root)
 }
 bool Database::db_selectVal(Node *root)
 {
-	vector<CursePair> cursor;
-	// Node* ptrDef = nullptr;
-	Node* ptrExpr = root->rightSon;
+	// |¯¯¯¯¯¯¯¯|
+	// |  root  |
+	// |________|
+	//        v
+	// 		 |¯¯¯¯¯¯¯¯|
+	// 		 |AND(...)|
+	// 		 |________|
+	//        v     v
+	// |¯¯¯¯¯¯¯¯|  |¯¯¯¯¯¯¯¯|
+	// |  cmp   |  |  cmp   |
+	// |________|  |________|
+	//  v      v
+	// column  val
+	Node* ptrConj = root->rightSon;
+	Node* ptrExpr = nullptr;
+	Node* ptrOp = nullptr;
+	Node* ptrVal = nullptr;
 	try
 	{
 		m_catMgr.assertNonExistTable(root->strval);
 		// ptrDef = m_catMgr.get_column_def(root);
-		// git start
+
 		while (ptrExpr != nullptr)
 		{
-			// git start
+			// now support 'and' only.
+			// ptrExpr->operation <= OP_OR equals to
+			// ptrExpr->operation == OP_AND || OP_OR
+			if (ptrExpr->operation == OP_AND)
+			{
+				// column name put in the left side
+				ptrTmp = ptrExpr->leftSon;
+			}
+			else
+			{
+
+			}
 			ptrExpr = ptrExpr->rightSon;
 		}
 	}
@@ -244,8 +269,12 @@ bool Database::db_selectVal(Node *root)
 
 	if (root->rightSon == nullptr)
 		m_recMgr.print_all_record(root->strval);
-	else 
+	else
+	{
+		// vector<CursePair> cursor = ;
+		// while 
 		m_recMgr.print_select_record(root->strval, cursor);
+	}
 	// always print 0
 	printf("Query OK, 0 rows affected\n");
 	return false;
