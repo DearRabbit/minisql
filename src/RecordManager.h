@@ -15,8 +15,8 @@ public:
 	// - function:
 	// Insert a record into a table(.db file).
 	// - return:
-	// n : number of line affected, currently 1;
-	vector<CursePair> new_entry_record(Node* node);		// insert record
+	// a pair of address
+	CursePair new_entry_record(Node* node);		// insert record
 	
 	// - function:
 	// Delete records from a table(.db file).
@@ -59,7 +59,9 @@ public:
 	// Print searching results.
 	// -- curseTable: record position table.
 	// Undefined print style;
-	int print_record(char* tableName, vector<CursePair>& curseTable);
+	int print_select_record(char* tableName, vector<CursePair>& curseTable);
+
+	int print_all_record(char* tableName);
 
 	// to do 
 	void assertMultipleKey(char* tableName, char* columnName, Node* data);

@@ -152,13 +152,13 @@ bool Database::db_insertVal(Node *root)
 			{
 				throw TypeMismatchException("too many values");
 			}
-			if (CHECK_TYPE(ptrDef, ptrData))
+			if (CHECK_TYPE(ptrDef->operation, ptrData->strval))
 			{
 				throw TypeMismatchException(string("at column ")+string(ptrDef->strval));
 			}
 			if (m_catMgr.if_unique_key(root->strval, ptrDef->strval))
 			{
-				//                          v:tableName   v:columnName
+				//                                   v:tableName   v:columnName
 				if (m_catMgr.ifexist_index_on_column(root->strval, ptrDef->strval))
 				{
 					m_idxMgr.assertMultipleKey(root->strval, ptrDef->strval, ptrData);
@@ -192,31 +192,60 @@ bool Database::db_insertVal(Node *root)
 		return false;
 	}
 
-	vector<CursePair>& cursor = m_recMgr.new_record(root);
-
+	CursePair& cursor = m_recMgr.new_entry_record(root);
+	ptrDef = columnDef;
+	ptrData = root->leftSon;
+	while(ptrDef != nullptr)
+	{
+		if (m_catMgr.ifexist_index_on_column(root->strval, ptrDef->strval))
+		{
+			m_idxMgr.new_entry_idx(ptrData, cursor);
+		}
+		ptrDef = ptrDef->leftSon;
+		ptrData = ptrData->leftSon;
+	}
+ 	
 	// currently print 1
 	printf("Query OK, 1 rows affected\n");
 	return true;
 }
 bool Database::db_selectVal(Node *root)
 {
+	vector<CursePair> cursor;
+	// Node* ptrDef = nullptr;
+	Node* ptrExpr = root->rightSon;
 	try
 	{
 		m_catMgr.assertNonExistTable(root->strval);
+		// ptrDef = m_catMgr.get_column_def(root);
+		// git start
+		while (ptrExpr != nullptr)
+		{
+			// git start
+			ptrExpr = ptrExpr->rightSon;
+		}
 	}
 	catch (TableNonExistException)
 	{
 		fprintf(stderr, "Error: no such table: %s\n", root->strval);
 		return false;
 	}
+	catch (ColumnNonExistException)
+	{
+		fprintf(stderr, "Error: table %s has no column named %s\n",\
+		 	root->strval, ptrExpr->leftSon->strval);
+		return false;
+	}
+	catch (TypeMismatchException e)
+	{
+		fprintf(stderr, "Error: type mismatch: %s\n", e.columnName.c_str());		
+		return false;
+	}
 
-	vector<CursePair> cursor;
-	Node* ptrDef = m_catMgr.get_column_def(root);
-	//// git start
-	// if(ifexist_idx(tablename))
-	// 	idx.select(table,cursor)
-
-	m_recMgr.print_record(root->strval, cursor);
+	if (root->rightSon == nullptr)
+		m_recMgr.print_all_record(root->strval);
+	else 
+		m_recMgr.print_select_record(root->strval, cursor);
 	// always print 0
 	printf("Query OK, 0 rows affected\n");
 	return false;

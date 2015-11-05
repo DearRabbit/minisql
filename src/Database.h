@@ -8,8 +8,8 @@
 #include "RecordManager.h"
 
 #define CHECK_TYPE(def, data) \ 
-	(((data)->strval == nullptr && (def)->operation == VAL_CHAR) || \
-	 ((data)->strval != nullptr && (def)->operation != VAL_CHAR))
+	(((data) == nullptr && (def) == VAL_CHAR) || \
+	 ((data) != nullptr && (def) != VAL_CHAR))
 
 class Database
 {
