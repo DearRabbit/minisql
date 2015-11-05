@@ -199,7 +199,7 @@ bool Database::db_insertVal(Node *root)
 	{
 		if (m_catMgr.ifexist_index_on_column(root->strval, ptrDef->strval))
 		{
-			m_idxMgr.new_entry_idx(ptrData, cursor);
+			m_idxMgr.new_entry_idx(root->strval, ptrDef->strval, cursor);
 		}
 		ptrDef = ptrDef->leftSon;
 		ptrData = ptrData->leftSon;
@@ -296,16 +296,16 @@ bool Database::db_selectVal(Node *root)
 		for (auto it : columnWithIndex)
 		{
 			if (it == columnWithIndex[0])
-				select_record_raw(it, cursor);
+				m_recMgr.select_record_raw(it, cursor);
 			else
-				select_record(it, cursor);
+				m_recMgr.select_record(it, cursor);
 		}
 		for (auto it : columnWithoutIndex)
 		{
 			if (tmpSize == 0 && it == columnWithoutIndex[0])
-				select_record_raw(it, cursor);
+				m_recMgr.select_record_raw(it, cursor);
 			else
-				select_record(it, cursor);
+				m_recMgr.select_record(it, cursor);
 		}
 
 		m_recMgr.print_select_record(root->strval, cursor);
@@ -316,38 +316,102 @@ bool Database::db_selectVal(Node *root)
 }
 bool Database::db_deleteVal(Node *root)
 {
+	Node* ptrConj = root->rightSon;
+	Node* ptrExpr = nullptr;
+	Node* columnDef = nullptr;
+	vector<Node*> columnWithIndex;
+	vector<Node*> columnWithoutIndex;
 	try
 	{
 		m_catMgr.assertNonExistTable(root->strval);
+
+		while (ptrConj != nullptr)
+		{
+			// now support 'and' only.
+			// ptrExpr->operation <= OP_OR equals to
+			// ptrExpr->operation == OP_AND || OP_OR
+			if (ptrConj->operation == OP_AND)
+			{
+				// column name put in the left side
+				ptrExpr = ptrConj->leftSon;
+			}
+			else
+			{
+				ptrExpr = ptrConj;
+				// end here
+				ptrConj = ptrConj->rightSon;
+			}
+			m_catMgr.assertNonExistColumn(root->strval, ptrExpr->leftSon->strval);
+			columnDef = m_catMgr.get_column_def(root->strval, ptrExpr->leftSon->strval);
+
+			if (m_catMgr.ifexist_index_on_column(root->strval, ptrDef->strval))
+			{
+				columnWithIndex.push_back(ptrExpr);
+			}
+			else
+			{
+				columnWithoutIndex.push_back(ptrExpr);
+			}
+
+			// check type
+			if (CHECK_TYPE(columnDef->operation, ptrExpr->rightSon->strval))
+				throw TypeMismatchException(string("at column ")+string(ptrExpr->leftSon->strval));
+
+			ptrConj = ptrConj->rightSon;
+		}
 	}
 	catch (TableNonExistException)
 	{
 		fprintf(stderr, "Error: no such table: %s\n", root->strval);
 		return false;
 	}
-
-	/*
-	// template
-	while (ptrConj != nullptr)
+	catch (ColumnNonExistException)
 	{
-		if (ptrConj->operation == OP_AND)
-		{
-			ptrExpr = ptrConj->leftSon;
-		}
-		else
-		{
-			ptrExpr = ptrConj;
-			ptrConj = ptrConj->rightSon;
-		}
-		{
-			do something on ptrExpr;
-		}
-		ptrConj = ptrConj->rightSon;
+		fprintf(stderr, "Error: table %s has no column named %s\n",\
+		 	root->strval, ptrExpr->leftSon->strval);
+		return false;
 	}
-	*/
+	catch (TypeMismatchException e)
+	{
+		fprintf(stderr, "Error: type mismatch: %s\n", e.columnName.c_str());		
+		return false;
+	}
 
 	int returnVal;
-	returnVal = m_recMgr.new_record(root);
+	if (root->rightSon == nullptr)
+	{
+		returnVal = m_recMgr.delete_all_record(root->strval);
+		// TO-DO
+		// delete all thing on the table 'name'
+	}	
+	else
+	{
+		vector<CursePair> cursor;
+		size_t tmpSize = columnWithIndex.size();
+
+		for (auto it : columnWithIndex)
+		{
+			if (it == columnWithIndex[0])
+				m_recMgr.select_record_raw(it, cursor);
+			else
+				m_recMgr.select_record(it, cursor);
+		}
+		for (auto it : columnWithoutIndex)
+		{
+			if (tmpSize == 0 && it == columnWithoutIndex[0])
+				m_recMgr.select_record_raw(it, cursor);
+			else
+				m_recMgr.select_record(it, cursor);
+		}
+		returnVal = m_recMgr.delete_record(root->strval, cursor);
+	}
+	// delete index
+	// for (auto it : something from cat?)
+	// {
+		//// TO-DO
+		// m_idxMgr.delete_entry_on_column(table, column, cursor);
+	// }
+
 	printf("Query OK, %d rows affected\n", returnVal);
 	return true;
 }

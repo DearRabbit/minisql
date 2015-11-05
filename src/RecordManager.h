@@ -22,7 +22,7 @@ public:
 	// Delete records from a table(.db file).
 	// - Note: CurseT contains blocks' num & offset
 	// - return:
-	// n : number of lines afftected.()
+	// n : return size of table;
 	int delete_record(char* tableName, vector<CursePair>& curseTable);
 
 	int delete_all_record(char* tableName);
@@ -57,7 +57,7 @@ public:
 	// - function:
 	// Print searching results.
 	// -- curseTable: record position table.
-	// Undefined print style;
+	// return size of table;
 	int print_select_record(char* tableName, vector<CursePair>& curseTable);
 
 	int print_all_record(char* tableName);
