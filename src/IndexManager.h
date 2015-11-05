@@ -10,7 +10,7 @@ public:
 	IndexManager();
 	~IndexManager();
 	
-	// merge two:
+	// merge two:(revoked)
 
 	// - function:
 	// Create a new B+Tree in idx file(create in catMgr)
@@ -64,7 +64,7 @@ public:
 	// -- curseTable: records position array.
 	// - return:
 	// return nothing now
-	// int select_index(Node* node, CurseT** curseTable);
+	int select_index_raw(Node* node, vector<CursePair>& cursorTable);
 
 	// - function:
 	// If curseTable(vector of pos pairs) is empty,
