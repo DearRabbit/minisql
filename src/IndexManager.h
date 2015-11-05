@@ -37,7 +37,7 @@ public:
 	// --- MINISQL_OK
 	// --- MINISQL_ECONSTRAINT: If there exists a record with the same key.
 	// --- MINISQL_EIO: If the table does not exist.
-	int new_entry_idx(char* tableName, char* columnName, CursePair& cursor);
+	// int new_entry_idx(char* tableName, char* columnName, CursePair& cursor);
 
 	// Index deletion happens in Catalogmgr::delete_index_def().
 
@@ -52,7 +52,7 @@ public:
 	// - return:
 	// --- MINISQL_OK
 	// --- MINISQL_EIO: If the table does not exist.
-	int delete_entry_idx(char* tableName, char* columnName, CursePair& cursor);
+	// int delete_entry_idx(char* tableName, char* columnName, CursePair& cursor);
 
 	// - function:
 	// Raw select from a select AST 
