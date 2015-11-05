@@ -7,8 +7,8 @@
 #include "IndexManager.h"
 #include "RecordManager.h"
 
-#define CHECK_TYPE(def, data) \ 
-	(((data) == nullptr && (def) == VAL_CHAR) || \
+#define CHECK_TYPE(def, data)\
+	(((data) == nullptr && (def) == VAL_CHAR) ||\
 	 ((data) != nullptr && (def) != VAL_CHAR))
 
 class Database
