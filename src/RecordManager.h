@@ -26,8 +26,6 @@ public:
 	int delete_record(char* tableName, vector<CursePair>& curseTable);
 
 	int delete_all_record(char* tableName);
-
-	// TO-DO: merge 2 function v:v
 	
 	// - function:
 	// Dumb selection with linear search.

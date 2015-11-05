@@ -227,6 +227,8 @@ bool Database::db_selectVal(Node *root)
 	Node* ptrConj = root->rightSon;
 	Node* ptrExpr = nullptr;
 	Node* columnDef = nullptr;
+	vector<Node*> columnWithIndex;
+	vector<Node*> columnWithoutIndex;
 	try
 	{
 		m_catMgr.assertNonExistTable(root->strval);
@@ -249,6 +251,15 @@ bool Database::db_selectVal(Node *root)
 			}
 			m_catMgr.assertNonExistColumn(root->strval, ptrExpr->leftSon->strval);
 			columnDef = m_catMgr.get_column_def(root->strval, ptrExpr->leftSon->strval);
+
+			if (m_catMgr.ifexist_index_on_column(root->strval, ptrDef->strval))
+			{
+				columnWithIndex.push_back(ptrExpr);
+			}
+			else
+			{
+				columnWithoutIndex.push_back(ptrExpr);
+			}
 
 			// check type
 			if (CHECK_TYPE(columnDef->operation, ptrExpr->rightSon->strval))
@@ -280,27 +291,28 @@ bool Database::db_selectVal(Node *root)
 	else
 	{
 		vector<CursePair> cursor;
-		ptrConj = root->rightSon;
-		/*
-		// template
-		while (ptrConj != nullptr)
-		{
-			if (ptrConj->operation == OP_AND)
-			{
+		size_t tmpSize = columnWithIndex.size();
 
-			}
+		for (auto it : columnWithIndex)
+		{
+			if (it == columnWithIndex[0])
+				select_record_raw(it, cursor);
 			else
-			{
-				ptrConj = ptrConj->rightSon;
-			}
-			ptrConj = ptrConj->rightSon;
+				select_record(it, cursor);
 		}
-		*/
+		for (auto it : columnWithoutIndex)
+		{
+			if (tmpSize == 0 && it == columnWithoutIndex[0])
+				select_record_raw(it, cursor);
+			else
+				select_record(it, cursor);
+		}
+
 		m_recMgr.print_select_record(root->strval, cursor);
 	}
 	// always print 0
 	printf("Query OK, 0 rows affected\n");
-	return false;
+	return true;
 }
 bool Database::db_deleteVal(Node *root)
 {
@@ -314,10 +326,30 @@ bool Database::db_deleteVal(Node *root)
 		return false;
 	}
 
+	/*
+	// template
+	while (ptrConj != nullptr)
+	{
+		if (ptrConj->operation == OP_AND)
+		{
+			ptrExpr = ptrConj->leftSon;
+		}
+		else
+		{
+			ptrExpr = ptrConj;
+			ptrConj = ptrConj->rightSon;
+		}
+		{
+			do something on ptrExpr;
+		}
+		ptrConj = ptrConj->rightSon;
+	}
+	*/
+
 	int returnVal;
 	returnVal = m_recMgr.new_record(root);
 	printf("Query OK, %d rows affected\n", returnVal);
-	return false;
+	return true;
 }
 
 bool Database::processSingleAST(Node* root)
