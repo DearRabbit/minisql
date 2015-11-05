@@ -24,7 +24,7 @@ public:
 	// -- node: sequential data from table(rec)
 	// - returns:
 	// return nothing
-	int new_index(Node* data);
+	int new_index(Node* data, vector<CursePair>& cursorTable);
 		
 	// - function:
 	// Insert a new entry into an .idx file
@@ -37,7 +37,7 @@ public:
 	// --- MINISQL_OK
 	// --- MINISQL_ECONSTRAINT: If there exists a record with the same key.
 	// --- MINISQL_EIO: If the table does not exist.
-	// int new_entry_idx(Node* node);
+	int new_entry_idx(Node* node, CursePair& cursor);
 
 	// Index deletion happens in Catalogmgr::delete_index_def().
 
@@ -52,7 +52,7 @@ public:
 	// - return:
 	// --- MINISQL_OK
 	// --- MINISQL_EIO: If the table does not exist.
-	int delete_entry_idx(Node* node, CursePair& curseTable);
+	int delete_entry_idx(Node* node, CursePair& cursor);
 
 	// - function:
 	// Raw select from a select AST 
@@ -76,7 +76,7 @@ public:
 	// -- curseTable: record block number & offset array, opaque to api.
 	// - return:
 	// n: Number of lines selected.(size of curseTable)
-	int select_index(Node* node, vector<CursePair>& curseTable);
+	int select_index(Node* node, vector<CursePair>& cursorTable);
 
 	// to do 
 	void assertMultipleKey(char* tableName, char* columnName, Node* data);

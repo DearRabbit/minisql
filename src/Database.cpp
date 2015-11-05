@@ -90,6 +90,7 @@ bool Database::db_createIndex(Node *root)
 	
 	// check if there's idx on the column already!
 	// if not, new index in idxmgr
+	// something...!!!!
 	if (m_catMgr.new_index_def(tableName, columnName, indexName))
 	{
 		Node *data = m_recMgr.get_column_data(tableName, columnName);
@@ -136,13 +137,14 @@ bool Database::db_dropIndex(Node *root)
 }
 bool Database::db_insertVal(Node *root)
 {
+	Node *columnDef = nullptr;
+	Node *ptrDef = nullptr;
+	Node *ptrData = root->leftSon;
+
 	try
 	{
-		// v: put it in that
 		m_catMgr.assertNonExistTable(root->strval);
-		Node *ptrDef = m_catMgr.get_column_def(root->strval);
-		
-		Node *ptrData = root->leftSon;
+		ptrDef = columnDef = m_catMgr.get_column_def(root->strval);
 
 		while (ptrData != nullptr)
 		{
@@ -190,9 +192,10 @@ bool Database::db_insertVal(Node *root)
 		return false;
 	}
 
-	int returnVal = m_recMgr.new_record(root);
+	vector<CursePair>& cursor = m_recMgr.new_record(root);
+
 	// currently print 1
-	printf("Query OK, %d rows affected\n", returnVal);
+	printf("Query OK, 1 rows affected\n");
 	return true;
 }
 bool Database::db_selectVal(Node *root)
@@ -235,8 +238,6 @@ bool Database::db_deleteVal(Node *root)
 	printf("Query OK, %d rows affected\n", returnVal);
 	return false;
 }
-
-
 
 bool Database::processSingleAST(Node* root)
 {

@@ -16,14 +16,14 @@ public:
 	// Insert a record into a table(.db file).
 	// - return:
 	// n : number of line affected, currently 1;
-	int new_record(Node* node);		// insert record
+	vector<CursePair> new_entry_record(Node* node);		// insert record
 	
 	// - function:
 	// Delete records from a table(.db file).
 	// - Note: CurseT contains blocks' num & offset
 	// - return:
 	// n : number of lines afftected.()
-	int delete_record(char* tableName, std::vector<CursePair>& curseTable);
+	int delete_record(char* tableName, vector<CursePair>& curseTable);
 
 
 	// TO-DO: merge 2 function v:v
