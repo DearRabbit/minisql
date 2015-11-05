@@ -65,7 +65,7 @@ bool Database::db_createIndex(Node *root)
 	{
 		// maybe put inside
 		m_catMgr.assertNotUniqueKey(tableName, columnName);
-		m_catMgr.assertNonExistIndex(indexName);
+		m_catMgr.assertExistIndex(indexName);
 	}
 	catch (TableNonExistException)
 	{
@@ -214,40 +214,47 @@ bool Database::db_selectVal(Node *root)
 	// |¯¯¯¯¯¯¯¯|
 	// |  root  |
 	// |________|
-	//        v
+	//        v(R)
 	// 		 |¯¯¯¯¯¯¯¯|
 	// 		 |AND(...)|
 	// 		 |________|
 	//        v     v
 	// |¯¯¯¯¯¯¯¯|  |¯¯¯¯¯¯¯¯|
-	// |  cmp   |  |  cmp   |
+	// | cmp(op)|  | cmp(op)|
 	// |________|  |________|
 	//  v      v
 	// column  val
 	Node* ptrConj = root->rightSon;
 	Node* ptrExpr = nullptr;
-	Node* ptrOp = nullptr;
-	Node* ptrVal = nullptr;
+	Node* columnDef = nullptr;
 	try
 	{
 		m_catMgr.assertNonExistTable(root->strval);
-		// ptrDef = m_catMgr.get_column_def(root);
 
-		while (ptrExpr != nullptr)
+		while (ptrConj != nullptr)
 		{
 			// now support 'and' only.
 			// ptrExpr->operation <= OP_OR equals to
 			// ptrExpr->operation == OP_AND || OP_OR
-			if (ptrExpr->operation == OP_AND)
+			if (ptrConj->operation == OP_AND)
 			{
 				// column name put in the left side
-				ptrTmp = ptrExpr->leftSon;
+				ptrExpr = ptrConj->leftSon;
 			}
 			else
 			{
-
+				ptrExpr = ptrConj;
+				// end here
+				ptrConj = ptrConj->rightSon;
 			}
-			ptrExpr = ptrExpr->rightSon;
+			m_catMgr.assertNonExistColumn(root->strval, ptrExpr->leftSon->strval);
+			columnDef = m_catMgr.get_column_def(root->strval, ptrExpr->leftSon->strval);
+
+			// check type
+			if (CHECK_TYPE(columnDef->operation, ptrExpr->rightSon->strval))
+				throw TypeMismatchException(string("at column ")+string(ptrExpr->leftSon->strval));
+
+			ptrConj = ptrConj->rightSon;
 		}
 	}
 	catch (TableNonExistException)
@@ -268,11 +275,27 @@ bool Database::db_selectVal(Node *root)
 	}
 
 	if (root->rightSon == nullptr)
+		// currently support select *
 		m_recMgr.print_all_record(root->strval);
 	else
 	{
-		// vector<CursePair> cursor = ;
-		// while 
+		vector<CursePair> cursor;
+		ptrConj = root->rightSon;
+		/*
+		// template
+		while (ptrConj != nullptr)
+		{
+			if (ptrConj->operation == OP_AND)
+			{
+
+			}
+			else
+			{
+				ptrConj = ptrConj->rightSon;
+			}
+			ptrConj = ptrConj->rightSon;
+		}
+		*/
 		m_recMgr.print_select_record(root->strval, cursor);
 	}
 	// always print 0
