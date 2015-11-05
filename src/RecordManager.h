@@ -28,7 +28,7 @@ public:
 	int delete_all_record(char* tableName);
 
 	// TO-DO: merge 2 function v:v
-	/*
+	
 	// - function:
 	// Dumb selection with linear search.
 	// -- node: A select AST. Must also contain a subtree
@@ -37,7 +37,7 @@ public:
 	// Hasn't been initialized.
 	// - return:
 	// n: number of lines affected.
-	int select_record( Node* node, CurseT** curseTable);*/
+	int select_record_raw(Node* node, vector<CursePair>& curseTable);
 	
 	// - function:
 	// Selection with linear search.
