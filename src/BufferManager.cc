@@ -24,7 +24,7 @@ BufferManager::BufferManager()
 BufferManager::~BufferManager()
 {
     bm_flush();
-    delete bm_blockPool;
+    delete[] bm_blockPool;
     for( auto pagerPair : bm_filePool) {
         delete pagerPair.first;
     }
@@ -109,14 +109,18 @@ BufferManager::bm_readblock(Pager* pager, const int block_num)
 #if _DEBUG
     std::cout << "Block " << nblock_id << " is chosen in LRU." << std::endl;
 #endif // _DEBUG
+
+
 	if(!rblock.isDirty()) {
 
         // If rblock is registered, unregister it
         if( rblock.isSet() ){
             bm_filePool[rblock.getPager()].erase(rblock.getBlockNum() );
+
 #if _DEBUG
     std::cout << nblock_id << " is swapped." << std::endl;
 #endif // _DEBUG
+
         }
 
 		rblock.setblock(pager, block_num);
@@ -129,9 +133,11 @@ BufferManager::bm_readblock(Pager* pager, const int block_num)
 		return nblock_id;
 	}
 	else {  // Dirty block, which must have been registered
+
 #if _DEBUG
     std::cout << nblock_id << " is swapped." << std::endl;
 #endif // _DEBUG
+    
 		bm_writeblock(nblock_id);
 
         // Unregister the block in the filePool.
