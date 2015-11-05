@@ -12,7 +12,6 @@
 
 const int BLOCK_SIZE   = 4096;
 const int BLOCK_NUMBER = 512;
-//const int MAX_FILE_NUMBER = 4;
 
 class Pager;
 
@@ -78,7 +77,7 @@ class Pager
 	unsigned int n_pages;
 public:
 	Pager(const char* fname) {
-		filename = new char[strlen(fname) + 1];     // holy shit!
+		filename = new char[strlen(fname) + 1];
 		strcpy(filename, fname);
 		fileptr = fopen(filename, "rb+");
 		struct stat st;
@@ -112,7 +111,6 @@ private:
 	blockInfo* bm_blockPool;
 
 	// (maybe a little weird)
-	//std::map<std::string, std::map<int, int> > bm_filePool;
 	std::map< const Pager*, std::map<int, int> > bm_filePool;
 
 
@@ -123,25 +121,27 @@ public:
 	BufferManager();
 	~BufferManager();
 
+	// !! Please read this before you conitnue !!
+	// Before getblock() or newblock(), must call this
+	// to ensure that the file is registered.
 	Pager* getPager(const char* filename);
-    //	int    closeFile(Pager* pager);
-
-	// return errno(defined and handled elsewhere)
-	// create a file and allocate the first block for it.
-	// allocation means to configure blockpool and filepool.
+    
 	int createFile(const char* filename) ;
 
 	int deleteFile(const char* filename) ;
-	// return the address of the block in main mem
-	// if the file is not loaded, load it and read block
-	// else if the block is not loaded, read it
-	// else return the block
-	//unsigned char* getblock(Pager* pager,const int block_num, const int dirty) ;
+	
+	// !! Please Read this before you continue.
+	// These methods should be called after getting the pager.
+	// Before calling pinblock(), one must call getblock()
+	// or newblock() first to ensure the block is in the blockpool.
+	// Else the behavior is undefined.(i.e. The block pinned may be
+	// a completely different block or this may cause a false memory
+	// access)
 	unsigned char* getblock(Pager* pager, const int block_num, const int dirty);
 	unsigned char* newblock(Pager* pager, const int dirty);
 	int 		   pinblock(Pager* pager, const int block);
 	int 		 unpinblock(Pager* pager, const int block);
-	// return static instance ptr
+	
 	static BufferManager* getInstance() ;
 
 private:
