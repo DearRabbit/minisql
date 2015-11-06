@@ -67,6 +67,7 @@ class NodeManager
 		~NodeManager();
 
 		Node* newEmptyNode();
+		Node* newCopyDataNode(Node* data);
 		void setRootNode(Node* root);
 		Node* getRootNode(size_t pos) const;
 		//   v: delete the last unfinished node,

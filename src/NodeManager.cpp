@@ -21,6 +21,19 @@ Node* NodeManager::newEmptyNode()
 	ptr->numval = 0;
 	return ptr;
 }
+Node* NodeManager::newCopyDataNode(Node* data)
+{
+	Node* ptr = new Node;
+	m_manageArray.push_back(ptr);
+	ptr->leftSon = nullptr;
+	ptr->rightSon = nullptr;
+
+	STRDUP_NEW(ptr->strval, data->strval);
+
+	ptr->operation = data->operation;
+	ptr->numval = data->numval;
+	return ptr;
+}
 void NodeManager::setRootNode(Node* root)
 {
 	m_manageRoot.push_back(root);
