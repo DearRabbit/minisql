@@ -6,6 +6,7 @@
 #include "CatalogManager.h"
 #include "IndexManager.h"
 #include "RecordManager.h"
+#include "BufferManager.h"
 
 #define CHECK_TYPE(def, data)\
 	(((data) == nullptr && (def) == VAL_CHAR) ||\
@@ -16,10 +17,11 @@ class Database
 	private:
 		static Database* db_delegate;
 		NodeManager m_ast;
+		BufferManager m_bufMgr;
+
 		CatalogManager m_catMgr;
 		IndexManager m_idxMgr;
 		RecordManager m_recMgr;
-
 		
 	public:
 		Database();

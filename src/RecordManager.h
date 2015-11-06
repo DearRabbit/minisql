@@ -1,11 +1,14 @@
 #pragma once
 
 #include "NodeManager.h"
+#include "BufferManager.h"
 
 class RecordManager
 {
 private:
 	static RecordManager* rm_delegate;
+	// BufferManager* m_curBufMgr;
+	
 public:
 	RecordManager();
 	~RecordManager();
@@ -52,7 +55,7 @@ public:
 
 	// - function:
 	// Get data when constructing
-	Node* get_column_data(char* tableName, char* columnName);
+	Node* get_column_data(char* tableName, char* columnName, vector<CursePair>& curseTable);
 
 	// - function:
 	// Print searching results.
