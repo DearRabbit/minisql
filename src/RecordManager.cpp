@@ -176,12 +176,12 @@ int RecordManager::delete_all_record(char* tableName)
 	return returnVal;
 }
 
-int select_record_raw(Node* node, vector<CursePair>& curseTable)
+int select_record_raw(char* tableName, Node* node, vector<CursePair>& curseTable)
 {
 
 }
 
-int select_record(Node* node, vector<CursePair>& curseTable)
+int select_record(char* tableName, Node* node, vector<CursePair>& curseTable)
 {
 	
 }
