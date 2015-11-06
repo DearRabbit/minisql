@@ -2,19 +2,40 @@
 
 #include "NodeManager.h"
 
-// |
+// +------------------+--------
+// |Hedader_string(16)|
+// +------------------+--------
 // 
 // 
-// 
-// 
-// 
+//
+// Corresponds to a Node
+const int CAT_NAME_MAXSIZE = 32;
+
+typedef struct 
+{
+	int lBlock;
+	int lOffset;
+	int rBlock;
+	int rOffset;
+} BlockPtr;
+
+typedef struct
+{
+	int  operation;
+	char strval[CAT_NAME_MAXSIZE];
+	double numval;
+	BlockPtr leftSon;
+	BlockPtr rightSon;
+} FrmNode;
 
 class CatalogManager
 {
 private:
 	static CatalogManager * cm_delegate;
 	NodeManager m_columndef;
-	
+	NodeManager cm_catNodeMgr;
+	Node*       cm_catRoot;
+	vector<Node*> cm_idxList;
 public:
 	CatalogManager();
 	~CatalogManager();
