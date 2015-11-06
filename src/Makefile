@@ -5,16 +5,22 @@ COMFLAGS = -std=c++11
 LDFLAGS =
 DBGFLAGS = -g
 
-all: Database.o NodeManager.o yacc.tab.o lex.yy.o main.o
+all: Database.o CatalogManager.o IndexManager.o NodeManager.o BufferManager.o yacc.tab.o lex.yy.o main.o
 	$(CC) $(LDFLAGS) $^
 
 main.o: main.cpp
 	$(CC) $(DBGFLAGS) $(COMFLAGS) -c $^
-
 Database.o: Database.cpp
 	$(CC) $(DBGFLAGS) $(COMFLAGS) -c $^
-
+RecordManager.o: RecordManager.cpp
+	$(CC) $(DBGFLAGS) $(COMFLAGS) -c $^
+IndexManager.o: IndexManager.cpp bptree.cpp
+	$(CC) $(DBGFLAGS) $(COMFLAGS) -c $^
+CatalogManager.o: CatalogManager.cpp
+	$(CC) $(DBGFLAGS) $(COMFLAGS) -c $^
 NodeManager.o: NodeManager.cpp
+	$(CC) $(DBGFLAGS) $(COMFLAGS) -c $^
+BufferManager.o: BufferManager.cpp
 	$(CC) $(DBGFLAGS) $(COMFLAGS) -c $^
 
 lex.yy.o: lex.yy.c

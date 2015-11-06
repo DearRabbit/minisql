@@ -41,6 +41,8 @@ typedef std::pair<int, int> CursePair;
 #define  IDX_TYPE_FLOAT			(2)
 #define  IDX_TYPE_STRING		(3)
 
+#define  CAT_FLAG_NONBLOCK		(0)
+
 #define  BUFFER_FLAG_DIRTY		(1)
 #define  BUFFER_FLAG_NONDIRTY   (0)
 

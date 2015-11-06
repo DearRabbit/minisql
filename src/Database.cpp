@@ -96,7 +96,7 @@ bool Database::db_createIndex(Node *root)
 		vector<CursePair> cursor;
 		int columnId = m_catMgr.get_column_id(tableName, columnName);
 		Node *data = m_recMgr.get_column_data(tableName, columnId, cursor);
-		m_idxMgr.new_index(data, cursor);
+		m_idxMgr.new_index(tableName, columnName, data, cursor);
 	}
 	
 	// always print 0
@@ -194,14 +194,16 @@ bool Database::db_insertVal(Node *root)
 		return false;
 	}
 
-	CursePair cursor = m_recMgr.new_entry_record(root);
+	vector<CursePair> cursor;
+	cursor.push_back(m_recMgr.new_entry_record(root));
 	ptrDef = columnDef;
 	ptrData = root->leftSon;
 	while(ptrDef != nullptr)
 	{
 		if (m_catMgr.ifexist_index_on_column(root->strval, ptrDef->strval))
 		{
-			m_idxMgr.new_entry_idx(root->strval, ptrDef->strval, cursor);
+			ptrData->operation = ptrDef->operation;
+			m_idxMgr.new_entry_idx(root->strval, ptrDef->strval, ptrData, cursor);
 		}
 		ptrDef = ptrDef->leftSon;
 		ptrData = ptrData->leftSon;
@@ -288,7 +290,7 @@ bool Database::db_selectVal(Node *root)
 		return false;
 	}
 
-	columnDef = m_idxMgr.get_column_def(root->strval);
+	columnDef = m_catMgr.get_column_def(root->strval);
 	if (root->rightSon == nullptr)
 		// currently support select *
 		m_recMgr.print_all_record(root->strval, columnDef);
@@ -300,16 +302,16 @@ bool Database::db_selectVal(Node *root)
 		for (auto it : columnWithIndex)
 		{
 			if (it == columnWithIndex[0])
-				m_idxMgr.select_record_raw(root->strval, it, cursor);
+				m_idxMgr.select_record_raw(root->strval, it->leftSon->strval, it, cursor);
 			else
-				m_idxMgr.select_record(root->strval, it, cursor);
+				m_idxMgr.select_record(root->strval, it->leftSon->strval, it, cursor);
 		}
 		for (auto it : columnWithoutIndex)
 		{
 			if (tmpSize == 0 && it == columnWithoutIndex[0])
-				m_recMgr.select_record_raw(root->strval, it, cursor);
+				m_recMgr.select_record_raw(root->strval, columnDef, it, cursor);
 			else
-				m_recMgr.select_record(root->strval, it, cursor);
+				m_recMgr.select_record(root->strval, columnDef, it, cursor);
 		}
 
 		m_recMgr.print_select_record(root->strval, columnDef, cursor);
@@ -382,8 +384,7 @@ bool Database::db_deleteVal(Node *root)
 	}
 
 	int returnVal;
-	columnDef = m_idxMgr.get_column_def(root->strval);
-	m_recMgr.assignColumnName(columnDef);
+	columnDef = m_catMgr.get_column_def(root->strval);
 	if (root->rightSon == nullptr)
 	{
 		returnVal = m_recMgr.delete_all_record(root->strval);
@@ -398,16 +399,16 @@ bool Database::db_deleteVal(Node *root)
 		for (auto it : columnWithIndex)
 		{
 			if (it == columnWithIndex[0])
-				m_idxMgr.select_record_raw(root->strval, it, cursor);
+				m_idxMgr.select_record_raw(root->strval, it->leftSon->strval, it, cursor);
 			else
-				m_idxMgr.select_record(root->strval, it, cursor);
+				m_idxMgr.select_record(root->strval, it->leftSon->strval, it, cursor);
 		}
 		for (auto it : columnWithoutIndex)
 		{
 			if (tmpSize == 0 && it == columnWithoutIndex[0])
-				m_recMgr.select_record_raw(root->strval, it, cursor);
+				m_recMgr.select_record_raw(root->strval, columnDef, it, cursor);
 			else
-				m_recMgr.select_record(root->strval, it, cursor);
+				m_recMgr.select_record(root->strval, columnDef, it, cursor);
 		}
 
 		returnVal = m_recMgr.delete_record(root->strval, cursor);

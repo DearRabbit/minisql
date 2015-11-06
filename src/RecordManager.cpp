@@ -275,7 +275,7 @@ int RecordManager::delete_all_record(char* tableName)
 	return returnVal;
 }
 
-int RecordManager::select_record_raw(char* tableName, Node* node, Node* def, vector<CursePair>& curseTable)
+int RecordManager::select_record_raw(char* tableName, Node* def, Node* expr, vector<CursePair>& curseTable)
 {
 	string filename(tableName);
 	filename+=".db";
@@ -290,7 +290,7 @@ int RecordManager::select_record_raw(char* tableName, Node* node, Node* def, vec
 	for (int i = m_header.columnCount - 1; i >=0 ;--i)
 	{
 		initial_offset += m_header.columnLength[i];
-		if (strcmp(m_header.columnName[i], node->leftSon->strval) == 0)
+		if (strcmp(m_header.columnName[i], expr->leftSon->strval) == 0)
 		{
 			columnId = i;
 			// always break!
@@ -307,7 +307,7 @@ int RecordManager::select_record_raw(char* tableName, Node* node, Node* def, vec
 		if (*(int*)blockPtr < 0)
 		{
 			--i;
-			if (cmpExpr(node, blockPtr - initial_offset, columnId))
+			if (cmpExpr(expr, blockPtr - initial_offset, columnId))
 				curseTable.push_back(std::make_pair(blockNo, blockPtr-block-m_header.valLength));
 		}
 		blockPtr += (m_header.valLength+sizeof(int));
@@ -322,7 +322,7 @@ int RecordManager::select_record_raw(char* tableName, Node* node, Node* def, vec
 	return 0;
 }
 
-int RecordManager::select_record(char* tableName, Node* node, Node* def, vector<CursePair>& curseTable)
+int RecordManager::select_record(char* tableName, Node* def, Node* expr, vector<CursePair>& curseTable)
 {
 	string filename(tableName);
 	filename+=".db";
@@ -337,7 +337,7 @@ int RecordManager::select_record(char* tableName, Node* node, Node* def, vector<
 	for (int i = m_header.columnCount - 1; i >=0 ;--i)
 	{
 		initial_offset -= m_header.columnLength[i];
-		if (strcmp(m_header.columnName[i], node->leftSon->strval) == 0)
+		if (strcmp(m_header.columnName[i], expr->leftSon->strval) == 0)
 		{
 			columnId = i;
 			// always break!
@@ -348,7 +348,7 @@ int RecordManager::select_record(char* tableName, Node* node, Node* def, vector<
 	{
 		block = m_bufInstance->getblock(m_currentPage, it->first, BUFFER_FLAG_NONDIRTY)\
 			+ it->second + initial_offset;
-		if (!cmpExpr(node, block, columnId))
+		if (!cmpExpr(expr, block, columnId))
 			curseTable.erase(it);
 	}
 	write_back();

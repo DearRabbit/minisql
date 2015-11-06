@@ -97,7 +97,7 @@ public:
 	// Hasn't been initialized.
 	// - return:
 	// n: number of lines affected.
-	int select_record_raw(char* tableName, Node* node, Node* def, vector<CursePair>& curseTable);
+	int select_record_raw(char* tableName, Node* def, Node* expr, vector<CursePair>& curseTable);
 	
 	// - function:
 	// Selection with linear search.
@@ -110,7 +110,7 @@ public:
 	// -- curseTable: record block number & offset array, opaque to api.
 	// - return:
 	// n: Number of lines selected.(size of curseTable)
-	int select_record(char* tableName, Node* node, Node* def, vector<CursePair>& curseTable);
+	int select_record(char* tableName, Node* def, Node* expr, vector<CursePair>& curseTable);
 
 	// - function:
 	// Get data when constructing
