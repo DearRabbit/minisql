@@ -2,16 +2,69 @@
 
 #include "NodeManager.h"
 #include "BufferManager.h"
+#include <cassert>
+#include <cstring>
+
+// related with BLOCK_SIZE & BLOCK_NUMBER
+const int BLOCK_SIZE_OFFSET = 0;
+const int BLOCK_SIZE_MASK = BLOCK_SIZE;
+const int BLOCK_NUMBER_OFFSET = 12; //2^12 = 4096
+const int BLOCK_NUMBER_MASK = BLOCK_NUMBER; //
+
+
+// TO-DO: rearrange
+
+// Head data at
+// Block 0:
+//
+// |¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯|¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯|
+// |Header_string(16)|totalblock(4),totalentry(4),block_no(4),offset(4)|
+// |_________________|_________________________________________________|
+//
+// |¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯|¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯|¯¯¯¯¯¯¯|
+// |val_list_num(4)|val_type(4*n),val_length(4*n)|  ...  |
+// |_______________|_____________________________|_______|
+
+// for record,
+// |¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯|¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯|
+// | val_list(...) | MSB=0 if deleted|block_no, offset|
+// |_______________|__________________________________|
+
+
+typedef struct {
+	char 	Header_string[16];
+	int 	blockCount;
+	int 	enteyCount;
+	int 	nextEmptyNo;
+	int 	nextEmptyOffset;
+	int 	columnCount;
+
+	int* 	columnType;
+	int*	columnLength;
+
+	size_t 	headerLength; //also the start
+	size_t 	valLength;
+	char* 	tableName;
+	char** 	columnName; //optional
+} RecFileInfo;
 
 class RecordManager
 {
 private:
 	static RecordManager* rm_delegate;
-	// BufferManager* m_curBufMgr;
-	
+	RecFileInfo m_header;
+
+	// BufMgr
+	BufferManager* m_bufInstance;
+	Pager* m_currentPage;
+
+	void load_file(string& filename);
+	void write_back();
+
 public:
 	RecordManager();
 	~RecordManager();
+	static RecordManager* getInstance();
 
 	// Table creation and deletion all happen in Catalogmgr
 	
@@ -19,7 +72,7 @@ public:
 	// Insert a record into a table(.db file).
 	// - return:
 	// a pair of address
-	CursePair new_entry_record(Node* node);		// insert record
+	CursePair new_entry_record(Node* root);		// insert record
 	
 	// - function:
 	// Delete records from a table(.db file).
@@ -68,6 +121,5 @@ public:
 	// to do 
 	void assertMultipleKey(char* tableName, char* columnName, Node* data);
 
-	static RecordManager* getInstance();
 private:
 };
