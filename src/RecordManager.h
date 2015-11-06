@@ -4,6 +4,7 @@
 #include "BufferManager.h"
 #include <cassert>
 #include <cstring>
+#include <cmath>
 
 // related with BLOCK_SIZE & BLOCK_NUMBER
 const int BLOCK_SIZE_OFFSET = 0;
@@ -34,7 +35,7 @@ const int BLOCK_NUMBER_MASK = BLOCK_NUMBER; //
 typedef struct {
 	char 	Header_string[16];
 	int 	blockCount;
-	int 	enteyCount;
+	int 	entryCount;
 	int 	nextEmptyNo;
 	int 	nextEmptyOffset;
 	int 	columnCount;
@@ -60,6 +61,10 @@ private:
 
 	void load_file(string& filename);
 	void write_back();
+	void assignColumnName(Node* data);
+	void printBorder(int* tableLen, int len);
+
+	bool cmpExpr(Node* expr, unsigned char *data, int columnid);
 
 public:
 	RecordManager();
@@ -91,7 +96,7 @@ public:
 	// Hasn't been initialized.
 	// - return:
 	// n: number of lines affected.
-	int select_record_raw(char* tableName, Node* node, vector<CursePair>& curseTable);
+	int select_record_raw(char* tableName, Node* node, Node* def, vector<CursePair>& curseTable);
 	
 	// - function:
 	// Selection with linear search.
@@ -104,22 +109,23 @@ public:
 	// -- curseTable: record block number & offset array, opaque to api.
 	// - return:
 	// n: Number of lines selected.(size of curseTable)
-	int select_record(char* tableName, Node* node, vector<CursePair>& curseTable);
+	int select_record(char* tableName, Node* node, Node* def, vector<CursePair>& curseTable);
 
 	// - function:
 	// Get data when constructing
-	Node* get_column_data(char* tableName, char* columnName, vector<CursePair>& curseTable);
+	Node* get_column_data(char* tableName, int columnId, vector<CursePair>& curseTable);
 
 	// - function:
 	// Print searching results.
 	// -- curseTable: record position table.
 	// return size of table;
-	int print_select_record(char* tableName, vector<CursePair>& curseTable);
+	int print_select_record(char* tableName, Node* def, vector<CursePair>& curseTable);
 
-	int print_all_record(char* tableName);
+	int print_all_record(char* tableName, Node* def);
 
 	// to do 
 	void assertMultipleKey(char* tableName, char* columnName, Node* data);
+
 
 private:
 };

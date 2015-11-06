@@ -35,7 +35,7 @@ void RecordManager::load_file(string& filename)
 
 	m_header.headerLength = const_offset + var_offset*2;
 	m_header.valLength = 0;
-	for (int i = m_header.columnCount-1; i >=0; --i)
+	for (int i = m_header.columnCount - 1; i >=0; --i)
 	{
 		m_header.valLength += m_header.columnLength[i];
 	}
@@ -46,6 +46,105 @@ void RecordManager::write_back()
 	memcpy(block0, &m_header, sizeof(unsigned char)*16+sizeof(int)*5);
 	delete [] m_header.columnType;
 	delete [] m_header.columnLength;
+	delete [] m_header.columnName;
+}
+void RecordManager::assignColumnName(Node* data)
+{
+	m_header.columnName = new char*[m_header.columnCount];
+	for (int i = m_header.columnCount - 1; i >=0 ;--i)
+	{
+		m_header.columnName[i] = data->strval;
+		data = data->leftSon;
+	}
+}
+void RecordManager::printBorder(int* tableLen, int len)
+{
+	for (int i = 0; i < len; ++i)
+	{
+		putchar('+');
+		for (int j = 0; j < tableLen[i]; ++j)
+		{
+			putchar('-');
+		}
+	}
+	putchar('+');
+}
+bool RecordManager::cmpExpr(Node* expr, unsigned char *data, int columnid)
+{
+	bool result = false;
+	const float floate = 0.000001;
+	int strres = strncmp((char*)data, expr->rightSon->strval, m_header.columnLength[columnid]);
+	float fres = *(float*)data - expr->rightSon->numval;
+	int intres = *(int*)data - (int)expr->rightSon->numval;
+
+	switch (expr->operation)
+	{
+		case CMP_EQ:
+			{
+				// char
+				if (m_header.columnType[columnid] == VAL_CHAR)
+					result = (strres == 0);
+				// float
+				else if (m_header.columnType[columnid] == VAL_FLOAT)
+					result = (fabs(fres)<floate);
+				// int
+				else
+					result = (intres == 0);
+			}
+			break;
+		case CMP_NEQ:
+			{
+				if (m_header.columnType[columnid] == VAL_CHAR)
+					result = (strres != 0);
+				else if (m_header.columnType[columnid] == VAL_FLOAT)
+					result = (fabs(fres)>floate);
+				else
+					result = (intres != 0);
+			}
+			break;
+		case CMP_LT:
+			{
+				if (m_header.columnType[columnid] == VAL_CHAR)
+					result = (strres < 0);
+				else if (m_header.columnType[columnid] == VAL_FLOAT)
+					result = (fres < floate);
+				else
+					result = (intres < 0);
+			}
+			break;
+		case CMP_GT:
+			{
+				if (m_header.columnType[columnid] == VAL_CHAR)
+					result = (strres > 0);
+				else if (m_header.columnType[columnid] == VAL_FLOAT)
+					result = (fres > floate);
+				else
+					result = (intres > 0);
+			}
+			break;
+		case CMP_LE:
+			{
+				if (m_header.columnType[columnid] == VAL_CHAR)
+					result = (strres <= 0);
+				else if (m_header.columnType[columnid] == VAL_FLOAT)
+					result = !(fres > floate);
+				else
+					result = (intres <= 0);
+			}
+			break;
+		case CMP_GE:
+			{
+				if (m_header.columnType[columnid] == VAL_CHAR)
+					result = (strres >= 0);
+				else if (m_header.columnType[columnid] == VAL_FLOAT)
+					result = !(fres < floate);
+				else
+					result = (intres >= 0);
+			}
+			break;
+		default: assert(1);
+	}
+	return result;
 }
 
 //public
@@ -100,7 +199,7 @@ CursePair RecordManager::new_entry_record(Node* root)
 	}
 	// make flag empty?
 	*(unsigned int*)ptrBuf = 0x80000000;
-	++m_header.enteyCount;
+	++m_header.entryCount;
 
 	for (int i = m_header.columnCount - 1; i >= 0; --i)
 	{
@@ -131,7 +230,7 @@ int RecordManager::delete_record(char* tableName, vector<CursePair>& curseTable)
 
 	load_file(filename);
 
-	m_header.enteyCount -= curseTable.size();
+	m_header.entryCount -= curseTable.size();
 	unsigned int blockFlag = (m_header.nextEmptyNo<<BLOCK_NUMBER_OFFSET)\
 		|m_header.nextEmptyOffset;
 	for (auto it:curseTable)
@@ -166,9 +265,9 @@ int RecordManager::delete_all_record(char* tableName)
 	memset(block+m_header.headerLength, 0, sizeof(char)*(BLOCK_SIZE - m_header.headerLength));
 	
 	// TO-DO, rewrite header
-	int returnVal = m_header.enteyCount;
+	int returnVal = m_header.entryCount;
 	m_header.blockCount = 1;
-	m_header.enteyCount = 0;
+	m_header.entryCount = 0;
 	m_header.nextEmptyNo = 0;
 	m_header.nextEmptyOffset = m_header.headerLength;
 
@@ -176,15 +275,161 @@ int RecordManager::delete_all_record(char* tableName)
 	return returnVal;
 }
 
-int select_record_raw(char* tableName, Node* node, vector<CursePair>& curseTable)
+int RecordManager::select_record_raw(char* tableName, Node* node, Node* def, vector<CursePair>& curseTable)
 {
+	string filename(tableName);
+	filename+=".db";
 
-}
+	load_file(filename);
+	assignColumnName(def);
 
-int select_record(char* tableName, Node* node, vector<CursePair>& curseTable)
-{
+	// from flag back to column
+	int initial_offset = 0;
+	int columnId = 0;
 	
+	for (int i = m_header.columnCount - 1; i >=0 ;--i)
+	{
+		initial_offset += m_header.columnLength[i];
+		if (strcmp(m_header.columnName[i], node->leftSon->strval) == 0)
+		{
+			columnId = i;
+			// always break!
+			break;
+		}	
+	}
+
+	// all
+	int blockNo = 0;
+	unsigned char* block = m_bufInstance->getblock(m_currentPage, blockNo, BUFFER_FLAG_NONDIRTY);
+	unsigned char* blockPtr = block+m_header.headerLength+m_header.valLength;
+	for (int i = m_header.entryCount; i>0;)
+	{
+		if (*(int*)blockPtr < 0)
+		{
+			--i;
+			if (cmpExpr(node, blockPtr - initial_offset, columnId))
+				curseTable.push_back(std::make_pair(blockNo, blockPtr-block-m_header.valLength));
+		}
+		blockPtr += (m_header.valLength+sizeof(int));
+		if ((blockPtr+sizeof(int)) > (block+BLOCK_SIZE))
+		{
+			block = m_bufInstance->getblock(m_currentPage, ++blockNo, BUFFER_FLAG_NONDIRTY);
+			blockPtr = block+m_header.valLength;
+		}
+	}
+
+	write_back();
+	return 0;
 }
+
+int RecordManager::select_record(char* tableName, Node* node, Node* def, vector<CursePair>& curseTable)
+{
+	string filename(tableName);
+	filename+=".db";
+
+	load_file(filename);
+	assignColumnName(def);
+	unsigned char* block = nullptr;
+
+	// from start to column
+	int initial_offset = m_header.valLength;
+	int columnId = 0;
+	for (int i = m_header.columnCount - 1; i >=0 ;--i)
+	{
+		initial_offset -= m_header.columnLength[i];
+		if (strcmp(m_header.columnName[i], node->leftSon->strval) == 0)
+		{
+			columnId = i;
+			// always break!
+			break;
+		}	
+	}
+	for (auto it=curseTable.begin(); it!=curseTable.end() ;it++)
+	{
+		block = m_bufInstance->getblock(m_currentPage, it->first, BUFFER_FLAG_NONDIRTY)\
+			+ it->second + initial_offset;
+		if (!cmpExpr(node, block, columnId))
+			curseTable.erase(it);
+	}
+	write_back();
+	return 0;
+}
+
+Node* RecordManager::get_column_data(char* tableName, int columnId, vector<CursePair>& curseTable)
+{
+
+}
+
+int RecordManager::print_select_record(char* tableName, Node* def, vector<CursePair>& curseTable)
+{
+	string filename(tableName);
+	filename+=".db";
+
+	load_file(filename);
+	assignColumnName(def);
+	// print title
+	int* tableLen = new int[m_header.columnCount];
+	for (int i = 0; i < m_header.columnCount; ++i)
+	{
+		int maxlen = strlen(m_header.columnName[i]);
+		if (m_header.columnType[i] == VAL_INT)
+			maxlen = (maxlen > 10) ? maxlen : 10;
+		else if (m_header.columnType[i] == VAL_FLOAT)
+			maxlen = (maxlen > 8) ? maxlen : 8;
+		else
+			maxlen = (maxlen > m_header.columnLength[i]) ? maxlen : m_header.columnLength[i];
+
+		tableLen[i] = maxlen; 
+	}
+
+	// print title
+	printBorder(tableLen, m_header.columnCount);
+	// print column name
+	printBorder(tableLen, m_header.columnCount);
+
+	// print data
+	printBorder(tableLen, m_header.columnCount);
+
+	delete [] tableLen;
+	write_back();
+	return 0;
+}
+
+int RecordManager::print_all_record(char* tableName, Node* def)
+{
+	string filename(tableName);
+	filename+=".db";
+
+	load_file(filename);
+	assignColumnName(def);
+
+	int* tableLen = new int[m_header.columnCount];
+	for (int i = 0; i < m_header.columnCount; ++i)
+	{
+		int maxlen = strlen(m_header.columnName[i]);
+		if (m_header.columnType[i] == VAL_INT)
+			maxlen = (maxlen > 10) ? maxlen : 10;
+		else if (m_header.columnType[i] == VAL_FLOAT)
+			maxlen = (maxlen > 8) ? maxlen : 8;
+		else
+			maxlen = (maxlen > m_header.columnLength[i]) ? maxlen : m_header.columnLength[i];
+
+		tableLen[i] = maxlen; 
+	}
+
+	// print title
+	printBorder(tableLen, m_header.columnCount);
+	// print column name
+	printBorder(tableLen, m_header.columnCount);
+
+	// print data
+	printBorder(tableLen, m_header.columnCount);
+
+	delete [] tableLen;
+	write_back();
+	return 0;
+}
+
 
 
 

@@ -58,7 +58,9 @@ public:
 
 	// function:
 	// Return the ColumnDef of table 'name'
-	// point to last column of def
+	// point to last column of def 
+	// reverse
+	// !!! with operaion type
 	Node* get_column_def(char* tableName);
 	Node* get_column_def(char* tableName, char* columnName);
 

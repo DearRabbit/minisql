@@ -94,7 +94,8 @@ bool Database::db_createIndex(Node *root)
 	if (m_catMgr.new_index_def(tableName, columnName, indexName))
 	{
 		vector<CursePair> cursor;
-		Node *data = m_recMgr.get_column_data(tableName, columnName, cursor);
+		int columnId(tableName, columnName);
+		Node *data = m_recMgr.get_column_data(tableName, columnId, cursor);
 		m_idxMgr.new_index(data, cursor);
 	}
 	
@@ -252,6 +253,7 @@ bool Database::db_selectVal(Node *root)
 			}
 			m_catMgr.assertNonExistColumn(root->strval, ptrExpr->leftSon->strval);
 			columnDef = m_catMgr.get_column_def(root->strval, ptrExpr->leftSon->strval);
+			ptrExpr->leftSon->operation = columnDef->operation;
 
 			if (m_catMgr.ifexist_index_on_column(root->strval, ptrExpr->leftSon->strval))
 			{
@@ -286,9 +288,10 @@ bool Database::db_selectVal(Node *root)
 		return false;
 	}
 
+	columnDef = m_idxMgr.get_column_def(root->strval);
 	if (root->rightSon == nullptr)
 		// currently support select *
-		m_recMgr.print_all_record(root->strval);
+		m_recMgr.print_all_record(root->strval, columnDef);
 	else
 	{
 		vector<CursePair> cursor;
@@ -297,19 +300,19 @@ bool Database::db_selectVal(Node *root)
 		for (auto it : columnWithIndex)
 		{
 			if (it == columnWithIndex[0])
-				m_idxMgr.select_record_raw(it, cursor);
+				m_idxMgr.select_record_raw(root->strval, it, cursor);
 			else
-				m_idxMgr.select_record(it, cursor);
+				m_idxMgr.select_record(root->strval, it, cursor);
 		}
 		for (auto it : columnWithoutIndex)
 		{
 			if (tmpSize == 0 && it == columnWithoutIndex[0])
-				m_recMgr.select_record_raw(it, cursor);
+				m_recMgr.select_record_raw(root->strval, it, cursor);
 			else
-				m_recMgr.select_record(it, cursor);
+				m_recMgr.select_record(root->strval, it, cursor);
 		}
 
-		m_recMgr.print_select_record(root->strval, cursor);
+		m_recMgr.print_select_record(root->strval, columnDef, cursor);
 	}
 	// always print 0
 	printf("Query OK, 0 rows affected\n");
@@ -379,6 +382,8 @@ bool Database::db_deleteVal(Node *root)
 	}
 
 	int returnVal;
+	columnDef = m_idxMgr.get_column_def(root->strval);
+	m_recMgr.assignColumnName(columnDef);
 	if (root->rightSon == nullptr)
 	{
 		returnVal = m_recMgr.delete_all_record(root->strval);
@@ -393,17 +398,18 @@ bool Database::db_deleteVal(Node *root)
 		for (auto it : columnWithIndex)
 		{
 			if (it == columnWithIndex[0])
-				m_idxMgr.select_record_raw(it, cursor);
+				m_idxMgr.select_record_raw(root->strval, it, cursor);
 			else
-				m_idxMgr.select_record(it, cursor);
+				m_idxMgr.select_record(root->strval, it, cursor);
 		}
 		for (auto it : columnWithoutIndex)
 		{
 			if (tmpSize == 0 && it == columnWithoutIndex[0])
-				m_recMgr.select_record_raw(it, cursor);
+				m_recMgr.select_record_raw(root->strval, it, cursor);
 			else
-				m_recMgr.select_record(it, cursor);
+				m_recMgr.select_record(root->strval, it, cursor);
 		}
+
 		returnVal = m_recMgr.delete_record(root->strval, cursor);
 	}
 	// delete index
