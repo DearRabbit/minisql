@@ -36,7 +36,7 @@ IndexManager::new_index(char* tableName, char* columnName, Node* data, vector<Cu
             tInt = (int)(node->numval);
 			// TODO:How is an int stored in numval?
 			bpt.insertEntry(&tInt, it->first, it->second);
-			node = node->rightSon;
+			node = node->leftSon;
 			it++;
 		}
 	}
@@ -46,7 +46,7 @@ IndexManager::new_index(char* tableName, char* columnName, Node* data, vector<Cu
 		while(node != nullptr) {
             tFloat = (float)(node->numval);
 			bpt.insertEntry(&tFloat, it->first, it->second);
-			node = node->rightSon;
+			node = node->leftSon;
 			it++;
 		}
 	}
@@ -54,7 +54,7 @@ IndexManager::new_index(char* tableName, char* columnName, Node* data, vector<Cu
 		BPT bpt(fileName);
 		while(node != nullptr) {
 			bpt.insertEntry(node->strval, it->first, it->second);
-			node = node->rightSon;
+			node = node->leftSon;
 			it++;
 		}
 	}
@@ -77,7 +77,7 @@ IndexManager::new_entry_idx(char* tableName, char* columnName, Node* data, vecto
             tInt = node->numval;
 			// TODO:How is an int stored in numval?
 			bpt.insertEntry(&tInt, it->first, it->second);
-			node = node->rightSon;
+			node = node->leftSon;
 			it++;
 		}
 	}
@@ -87,7 +87,7 @@ IndexManager::new_entry_idx(char* tableName, char* columnName, Node* data, vecto
 		while(node != nullptr) {
             tFloat = node->numval;
 			bpt.insertEntry(&tFloat, it->first, it->second);
-			node = node->rightSon;
+			node = node->leftSon;
 			it++;
 		}
 	}
@@ -95,7 +95,7 @@ IndexManager::new_entry_idx(char* tableName, char* columnName, Node* data, vecto
 		BPT bpt(fileName);
 		while(node != nullptr) {
 			bpt.insertEntry(node->strval, it->first, it->second);
-			node = node->rightSon;
+			node = node->leftSon;
 			it++;
 		}
 	}
@@ -117,7 +117,7 @@ IndexManager::delete_entry_idx(char* tableName, char* columnName, Node* data)
 			// TODO:How is an int stored in numval?
             tInt = node->numval;
 			bpt.deleteEntry(&tInt);
-			node = node->rightSon;
+			node = node->leftSon;
 		}
 	}
 	else if(data->operation == VAL_FLOAT) {
@@ -126,14 +126,14 @@ IndexManager::delete_entry_idx(char* tableName, char* columnName, Node* data)
 		while(node != nullptr) {
             tFloat = node->numval;
 			bpt.deleteEntry(&tFloat);
-			node = node->rightSon;
+			node = node->leftSon;
 		}
 	}
 	else if(data->operation == VAL_CHAR){ 
 		BPT bpt(fileName);
 		while(node != nullptr) {
 			bpt.deleteEntry(node->strval);
-			node = node->rightSon;
+			node = node->leftSon;
 		}
 	}
 	delete[] fileName;
