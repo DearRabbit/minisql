@@ -70,6 +70,7 @@ void RecordManager::printBorder(int* tableLen, int len)
 		}
 	}
 	putchar('+');
+	putchar('\n');
 }
 bool RecordManager::cmpExpr(Node* expr, unsigned char *data, int columnId)
 {
@@ -176,7 +177,7 @@ CursePair RecordManager::new_entry_record(Node* root)
 	Node* ptrData = root->leftSon;
 	int blockFlag = *(int*)ptrBuf;
 
-	assert(blockFlag<0);
+	assert(blockFlag>=0);
 	if (blockFlag == 0)
 	{
 		// initially empty

@@ -175,12 +175,12 @@ CatalogManager::new_index_def(char* tableName, char* columnName, char* indexName
 
 	while (ptr != nullptr)
 	{
-		if (strcmp(tableName, ptr->strval))
+		if (strcmp(tableName, ptr->strval) == 0)
 		{
 			ptr = ptr->rightSon;
 			while (ptr != nullptr)
 			{
-				if (strcmp(columnName, ptr->strval))
+				if (strcmp(columnName, ptr->strval) == 0)
 				{
 					ptr = ptr->rightSon;
 					tmpPtr = cm_catNodeMgr.newEmptyNode();
@@ -216,7 +216,7 @@ CatalogManager::delete_table_def(char* tableName)
 	Node *tmpPtr = cm_catRoot;
 	while (ptr != nullptr)
 	{
-		if (strcmp(tableName, ptr->strval))
+		if (strcmp(tableName, ptr->strval) == 0)
 		{
 			tmpPtr->leftSon = ptr->leftSon;
 			return 0;
@@ -249,7 +249,7 @@ CatalogManager::delete_index_def(char* indexName)
 				tmpPtr = columnPtr->rightSon;
 				while (indexPtr != nullptr)
 				{
-					if (strcmp(indexName, indexPtr->strval))
+					if (strcmp(indexName, indexPtr->strval) == 0)
 					{
 						// first node: tp = primary key
 						if (tmpPtr->strval == nullptr)
@@ -279,7 +279,7 @@ CatalogManager::get_column_def(char* tableName)
 
 	while (tablePtr != nullptr)
 	{
-		if (strcmp(tableName, tablePtr->strval))
+		if (strcmp(tableName, tablePtr->strval) == 0)
 		{
 			columnPtr = tablePtr->rightSon;
 			while (columnPtr != nullptr)
@@ -305,12 +305,12 @@ CatalogManager::get_column_def(char* tableName, char* columnName)
 	Node *columnPtr = nullptr;
 	while (tablePtr != nullptr)
 	{
-		if (strcmp(tableName, tablePtr->strval))
+		if (strcmp(tableName, tablePtr->strval) == 0)
 		{
 			columnPtr = tablePtr->rightSon;
 			while (columnPtr != nullptr)
 			{
-				if (strcmp(columnName, columnPtr->strval))
+				if (strcmp(columnName, columnPtr->strval) == 0)
 				{
 					return m_columndef.newCopyDataNode(columnPtr);
 				}
@@ -329,12 +329,12 @@ CatalogManager::get_column_id(char* tableName, char* columnName)
 	int count = 0;
 	while (tablePtr != nullptr)
 	{
-		if (strcmp(tableName, tablePtr->strval))
+		if (strcmp(tableName, tablePtr->strval) == 0)
 		{
 			columnPtr = tablePtr->rightSon;
 			while (columnPtr != nullptr)
 			{
-				if (strcmp(columnName, columnPtr->strval))
+				if (strcmp(columnName, columnPtr->strval) == 0)
 				{
 					return count;
 				}
@@ -355,7 +355,7 @@ CatalogManager::ifexist_table(char* tableName)
 	Node *ptr = cm_catRoot->leftSon;
 	while (ptr != nullptr)
 	{
-		if (strcmp(tableName, ptr->strval))
+		if (strcmp(tableName, ptr->strval) == 0)
 			return true;
 		ptr = ptr->leftSon;
 	}
@@ -378,7 +378,7 @@ CatalogManager::ifexist_index(char* indexName)
 				indexPtr = columnPtr->rightSon->rightSon;
 				while (indexPtr != nullptr)
 				{
-					if (strcmp(indexName, indexPtr->strval))
+					if (strcmp(indexName, indexPtr->strval) == 0)
 					{
 						return true;
 					}
@@ -403,7 +403,7 @@ CatalogManager::if_unique_key(char* tableName, char* columnName)
 			ptr = ptr->rightSon;
 			while (ptr != nullptr)
 			{
-				if (strcmp(columnName, ptr->strval) && ptr->rightSon!=nullptr &&\
+				if (strcmp(columnName, ptr->strval) == 0 && ptr->rightSon!=nullptr &&\
 					 ptr->rightSon->operation >= DEF_UNIQUE)
 					return true;
 				ptr = ptr->leftSon;
@@ -426,7 +426,7 @@ CatalogManager::ifexist_index_on_column(char* tableName, char* columnName)
 			ptr = ptr->rightSon;
 			while (ptr != nullptr)
 			{
-				if (strcmp(columnName, ptr->strval) && ptr->rightSon!=nullptr&&\
+				if (strcmp(columnName, ptr->strval) == 0 && ptr->rightSon!=nullptr&&\
 					 ptr->rightSon->rightSon != nullptr)
 					return true;
 				ptr = ptr->leftSon;
@@ -477,12 +477,12 @@ throw(ColumnNonExistException)
 	Node *ptr = cm_catRoot->leftSon;
 	while (ptr != nullptr)
 	{
-		if (strcmp(tableName, ptr->strval))
+		if (strcmp(tableName, ptr->strval) == 0)
 		{
 			ptr = ptr->rightSon;
 			while (ptr != nullptr)
 			{
-				if (strcmp(columnName, ptr->strval))
+				if (strcmp(columnName, ptr->strval) == 0)
 					return;
 				ptr = ptr->leftSon;
 			}
