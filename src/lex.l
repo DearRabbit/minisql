@@ -1,6 +1,4 @@
 %{
-#include <cstdio>
-#include <cstdlib>
 #include "Database.h"
 #include "yacc.tab.hh"
 %}

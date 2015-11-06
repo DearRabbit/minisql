@@ -431,18 +431,25 @@ bool Database::processSingleAST(Node* root)
 	{
 		case OP_CREATE_TABLE:
 			result = db_createTable(root);
+			break;
 		case OP_CREATE_INDEX:
 			result = db_createIndex(root);
+			break;
 		case OP_DROP_TABLE:
 			result = db_dropTable(root);
+			break;
 		case OP_DROP_INDEX:
 			result = db_createIndex(root);
+			break;
 		case OP_INSERT:
 			result = db_insertVal(root);
+			break;
 		case OP_SELECT:
 			result = db_selectVal(root);
+			break;
 		case OP_DELECT:
 			result = db_deleteVal(root);
+			break;
 		// !!!!!
 		default: result = false;
 	}

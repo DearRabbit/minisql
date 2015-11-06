@@ -113,6 +113,7 @@ CatalogManager::new_table_def(Node* node)
 
 	Node *insertPtr = node->leftSon;
 	Node *columnPtr = nullptr;
+	int columnCount = 0;
 	while (insertPtr != nullptr)
 	{
 		columnPtr = cm_catNodeMgr.newCopyDataNode(insertPtr);
@@ -123,7 +124,36 @@ CatalogManager::new_table_def(Node* node)
 		columnPtr->leftSon = tablePtr->rightSon;
 		tablePtr->rightSon = columnPtr;
 		insertPtr = insertPtr->leftSon;
+		++columnCount;
 	}
+
+	// build file
+	string tmpStr(node->strval);
+	tmpStr += ".db";
+	BufferManager* bufmgr = BufferManager::getInstance();
+	bufmgr->createFile(tmpStr.c_str());
+	Pager* page = bufmgr->getPager(tmpStr.c_str());
+	unsigned char* block = bufmgr->newblock(page, BUFFER_FLAG_DIRTY);
+
+	int* blockData 		= (int*)(block+16*sizeof(char));
+	int* blockVarType 	= blockData + 5;
+	int* blockVarLen 	= blockVarType + columnCount;
+
+	strncpy((char*)block, "MINISQL v0.01", 16*sizeof(char));
+	blockData[0] = 1;
+	blockData[1] = 0;
+	blockData[2] = 0;
+	blockData[3] = sizeof(char)*16+sizeof(int)*(5+2*columnCount);
+	blockData[4] = columnCount;
+
+	insertPtr = node->leftSon;
+	for (int i = columnCount-1; i >=0 ; --i)
+	{
+		blockVarType[i] = insertPtr->operation;
+		blockVarLen[i]  = (insertPtr->operation == VAL_CHAR)? insertPtr->numval: 4;
+		insertPtr = insertPtr->leftSon;
+	}
+
 	return 0;
 }
 
@@ -131,7 +161,18 @@ int
 CatalogManager::new_index_def(char* tableName, char* columnName, char* indexName)
 {
 	Node *ptr = cm_catRoot->leftSon;
-	Node *tmpPtr;
+	Node *tmpPtr = nullptr;
+
+	string tmpStr(tableName);
+	tmpStr += "_";
+	tmpStr += columnName;
+	tmpStr += ".idx";
+	BufferManager* bufmgr = BufferManager::getInstance();
+	bufmgr->createFile(tmpStr.c_str());
+	Pager* page = bufmgr->getPager(tmpStr.c_str());
+	unsigned char* block = bufmgr->newblock(page, BUFFER_FLAG_DIRTY);
+	// TO-DO
+
 	while (ptr != nullptr)
 	{
 		if (strcmp(tableName, ptr->strval))
@@ -244,7 +285,7 @@ CatalogManager::get_column_def(char* tableName)
 			while (columnPtr != nullptr)
 			{
 				// Ignore Primary key...
-				returnPtr = cm_catNodeMgr.newCopyDataNode(columnPtr);
+				returnPtr = m_columndef.newCopyDataNode(columnPtr);
 				returnPtr->leftSon = returnRoot;
 				returnRoot = returnPtr;
 
@@ -271,7 +312,7 @@ CatalogManager::get_column_def(char* tableName, char* columnName)
 			{
 				if (strcmp(columnName, columnPtr->strval))
 				{
-					return cm_catNodeMgr.newCopyDataNode(columnPtr);
+					return m_columndef.newCopyDataNode(columnPtr);
 				}
 				columnPtr = columnPtr->leftSon;
 			}
