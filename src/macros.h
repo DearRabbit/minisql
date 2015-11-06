@@ -33,7 +33,7 @@ typedef std::pair<int, int> CursePair;
 #define  IDX_LEFTPTR_SIZE	 	(8)
 
 #define  IDX_FLAG_NOROOT		(-1)
-#define  IDX_FLAG_NONPAGE		(-2)
+#define  IDX_FLAG_NONPAGE		(-1)
 #define  IDX_FLAG_LEAF 			(1)
 #define  IDX_FLAG_NONLEAF		(0)
 
@@ -74,3 +74,14 @@ public:
 	};
 	string name;
 };
+
+typedef struct {
+    char  Header_string[16];
+	int   Type;		// int, float, or varchar(n)
+	int   Val_size;
+	int   Degree;
+	int   Root;
+	int   Free_list;
+	int   N_freepages;
+	int   Version_number;
+} IDXFileHeader;
