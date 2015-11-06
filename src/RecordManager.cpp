@@ -1,5 +1,7 @@
 #include "RecordManager.h"
 
+RecordManager* RecordManager::rm_delegate=nullptr;
+
 RecordManager::RecordManager()
 {
 	m_bufInstance = BufferManager::getInstance();

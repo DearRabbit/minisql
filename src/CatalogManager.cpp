@@ -67,8 +67,12 @@ CatalogManager::CatalogManager()
 			}
 			while(bPtr.rBlock==CAT_FLAG_NONBLOCK&&!bPtrStack.empty()){
 				// ????
+				/*
 				bPtr = bPtrStack.pop_back().second;
 				node = bPtrStack.pop_back().first;
+				*/
+				bPtr = bPtrStack.back().second;
+				node = bPtrStack.back().first;
 			}
 			block = bufmgr->getblock(pager, bPtr.rBlock, BUFFER_FLAG_NONDIRTY);
 			var_offset = bPtr.rOffset;
@@ -157,7 +161,7 @@ CatalogManager::new_index_def(char* tableName, char* columnName, char* indexName
 		}
 		ptr = ptr->leftSon;
 	}
-	assert(1);
+	exit(-1);
 }
 
 int
@@ -179,7 +183,7 @@ CatalogManager::delete_table_def(char* tableName)
 		tmpPtr = ptr;
 		ptr = ptr->leftSon;
 	}
-	assert(1);
+	exit(-1);
 }
 
 int
@@ -221,7 +225,7 @@ CatalogManager::delete_index_def(char* indexName)
 		}
 		tablePtr = tablePtr->leftSon;
 	}
-	assert(1);
+	exit(-1);
 }
 
 Node*
@@ -243,14 +247,14 @@ CatalogManager::get_column_def(char* tableName)
 				returnPtr = cm_catNodeMgr.newCopyDataNode(columnPtr);
 				returnPtr->leftSon = returnRoot;
 				returnRoot = returnPtr;
-				
+
 				columnPtr = columnPtr->leftSon;
 			}
 			return returnRoot;
 		}
 		tablePtr = tablePtr->leftSon;
 	}
-	assert(1);
+	exit(-1);
 }
 
 Node*
@@ -274,7 +278,7 @@ CatalogManager::get_column_def(char* tableName, char* columnName)
 		}
 		tablePtr = tablePtr->leftSon;
 	}
-	assert(1);
+	exit(-1);
 }
 int   
 CatalogManager::get_column_id(char* tableName, char* columnName)
@@ -299,7 +303,7 @@ CatalogManager::get_column_id(char* tableName, char* columnName)
 		}
 		tablePtr = tablePtr->leftSon;
 	}
-	assert(1);
+	exit(-1);
 }
 
 

@@ -7,7 +7,7 @@
 #include "BufferManager.h"
 #include "NodeManager.h"
 
-#define _DEBUG 1
+#define _DEBUG 0
 
 #include <assert.h>
 
