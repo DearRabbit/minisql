@@ -54,6 +54,7 @@ class RecordManager
 private:
 	static RecordManager* rm_delegate;
 	RecFileInfo m_header;
+	NodeManager m_columndata;
 
 	// BufMgr
 	BufferManager* m_bufInstance;
@@ -64,7 +65,7 @@ private:
 	void assignColumnName(Node* data);
 	void printBorder(int* tableLen, int len);
 
-	bool cmpExpr(Node* expr, unsigned char *data, int columnid);
+	bool cmpExpr(Node* expr, unsigned char *data, int columnId);
 
 public:
 	RecordManager();
@@ -125,7 +126,7 @@ public:
 
 	// to do 
 	void assertMultipleKey(char* tableName, char* columnName, Node* data);
-
+	void clean();
 
 private:
 };

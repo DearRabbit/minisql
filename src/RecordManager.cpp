@@ -69,11 +69,11 @@ void RecordManager::printBorder(int* tableLen, int len)
 	}
 	putchar('+');
 }
-bool RecordManager::cmpExpr(Node* expr, unsigned char *data, int columnid)
+bool RecordManager::cmpExpr(Node* expr, unsigned char *data, int columnId)
 {
 	bool result = false;
 	const float floate = 0.000001;
-	int strres = strncmp((char*)data, expr->rightSon->strval, m_header.columnLength[columnid]);
+	int strres = strncmp((char*)data, expr->rightSon->strval, m_header.columnLength[columnId]);
 	float fres = *(float*)data - expr->rightSon->numval;
 	int intres = *(int*)data - (int)expr->rightSon->numval;
 
@@ -82,10 +82,10 @@ bool RecordManager::cmpExpr(Node* expr, unsigned char *data, int columnid)
 		case CMP_EQ:
 			{
 				// char
-				if (m_header.columnType[columnid] == VAL_CHAR)
+				if (m_header.columnType[columnId] == VAL_CHAR)
 					result = (strres == 0);
 				// float
-				else if (m_header.columnType[columnid] == VAL_FLOAT)
+				else if (m_header.columnType[columnId] == VAL_FLOAT)
 					result = (fabs(fres)<floate);
 				// int
 				else
@@ -94,9 +94,9 @@ bool RecordManager::cmpExpr(Node* expr, unsigned char *data, int columnid)
 			break;
 		case CMP_NEQ:
 			{
-				if (m_header.columnType[columnid] == VAL_CHAR)
+				if (m_header.columnType[columnId] == VAL_CHAR)
 					result = (strres != 0);
-				else if (m_header.columnType[columnid] == VAL_FLOAT)
+				else if (m_header.columnType[columnId] == VAL_FLOAT)
 					result = (fabs(fres)>floate);
 				else
 					result = (intres != 0);
@@ -104,9 +104,9 @@ bool RecordManager::cmpExpr(Node* expr, unsigned char *data, int columnid)
 			break;
 		case CMP_LT:
 			{
-				if (m_header.columnType[columnid] == VAL_CHAR)
+				if (m_header.columnType[columnId] == VAL_CHAR)
 					result = (strres < 0);
-				else if (m_header.columnType[columnid] == VAL_FLOAT)
+				else if (m_header.columnType[columnId] == VAL_FLOAT)
 					result = (fres < floate);
 				else
 					result = (intres < 0);
@@ -114,9 +114,9 @@ bool RecordManager::cmpExpr(Node* expr, unsigned char *data, int columnid)
 			break;
 		case CMP_GT:
 			{
-				if (m_header.columnType[columnid] == VAL_CHAR)
+				if (m_header.columnType[columnId] == VAL_CHAR)
 					result = (strres > 0);
-				else if (m_header.columnType[columnid] == VAL_FLOAT)
+				else if (m_header.columnType[columnId] == VAL_FLOAT)
 					result = (fres > floate);
 				else
 					result = (intres > 0);
@@ -124,9 +124,9 @@ bool RecordManager::cmpExpr(Node* expr, unsigned char *data, int columnid)
 			break;
 		case CMP_LE:
 			{
-				if (m_header.columnType[columnid] == VAL_CHAR)
+				if (m_header.columnType[columnId] == VAL_CHAR)
 					result = (strres <= 0);
-				else if (m_header.columnType[columnid] == VAL_FLOAT)
+				else if (m_header.columnType[columnId] == VAL_FLOAT)
 					result = !(fres > floate);
 				else
 					result = (intres <= 0);
@@ -134,9 +134,9 @@ bool RecordManager::cmpExpr(Node* expr, unsigned char *data, int columnid)
 			break;
 		case CMP_GE:
 			{
-				if (m_header.columnType[columnid] == VAL_CHAR)
+				if (m_header.columnType[columnId] == VAL_CHAR)
 					result = (strres >= 0);
-				else if (m_header.columnType[columnid] == VAL_FLOAT)
+				else if (m_header.columnType[columnId] == VAL_FLOAT)
 					result = !(fres < floate);
 				else
 					result = (intres >= 0);
@@ -357,7 +357,66 @@ int RecordManager::select_record(char* tableName, Node* node, Node* def, vector<
 
 Node* RecordManager::get_column_data(char* tableName, int columnId, vector<CursePair>& curseTable)
 {
+	string filename(tableName);
+	filename+=".db";
 
+	load_file(filename);
+	if (m_header.entryCount == 0)
+	{
+		write_back();
+		return nullptr;
+	}
+	Node *root = m_columndata.newEmptyNode();
+	root->operation = m_header.columnType[columnId];
+	Node *ptr = root;
+	Node *ptrNext = nullptr;
+
+	// from flag back to column
+	int initial_offset = 0;
+	for (int i = m_header.columnCount - 1; i >= columnId; --i)
+	{
+		initial_offset += m_header.columnLength[i];	
+	}
+
+	// all
+	int blockNo = 0;
+	unsigned char* block = m_bufInstance->getblock(m_currentPage, blockNo, BUFFER_FLAG_NONDIRTY);
+	unsigned char* blockPtr = block+m_header.headerLength+m_header.valLength;
+	for (int i = m_header.entryCount; i>0;)
+	{
+		if (*(int*)blockPtr < 0)
+		{
+			--i;
+			ptrNext = m_columndata.newEmptyNode();
+			if (root->operation == VAL_CHAR)
+			{
+				ptrNext->strval = new char[m_header.columnLength[columnId]+1];
+				strncpy(ptrNext->strval, (char*)(blockPtr - initial_offset), m_header.columnLength[columnId]);
+				(ptrNext->strval)[m_header.columnLength[columnId]]=0;
+			}
+			else if (root->operation == VAL_FLOAT)
+			{
+				ptrNext->numval = *(float*)(blockPtr - initial_offset);
+			}
+			else
+			{
+				ptrNext->numval = *(int*)(blockPtr - initial_offset);
+			}
+			ptr->leftSon = ptrNext;
+			ptr = ptrNext;
+
+			curseTable.push_back(std::make_pair(blockNo, blockPtr-block-m_header.valLength));
+		}
+		blockPtr += (m_header.valLength+sizeof(int));
+		if ((blockPtr+sizeof(int)) > (block+BLOCK_SIZE))
+		{
+			block = m_bufInstance->getblock(m_currentPage, ++blockNo, BUFFER_FLAG_NONDIRTY);
+			blockPtr = block+m_header.valLength;
+		}
+	}
+
+	write_back();
+	return root;
 }
 
 int RecordManager::print_select_record(char* tableName, Node* def, vector<CursePair>& curseTable)
@@ -430,6 +489,14 @@ int RecordManager::print_all_record(char* tableName, Node* def)
 	return 0;
 }
 
+void RecordManager::assertMultipleKey(char* tableName, char* columnName, Node* data)
+{
+	// empty
+}
+void RecordManager::clean()
+{
+	m_columndata.clean();
+}
 
 
 

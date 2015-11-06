@@ -467,5 +467,12 @@ void Database::processAST()
 	{
 		processSingleAST(it);
 	}
+	clean();
+}
+
+void Database::clean()
+{
 	m_ast.clean();
+	// m_catMgr.clean();
+	m_recMgr.clean();
 }

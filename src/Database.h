@@ -35,6 +35,7 @@ class Database
 		// methods of AST Processing
 		// maybe we can return a boolean
 		void processAST();
+		void clean();
 
 	private:
 
