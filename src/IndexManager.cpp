@@ -243,6 +243,7 @@ IndexManager::catIdxName(char* tableName, char* columnName)
 	strcpy(idxName, tableName);
 	strcat(idxName, "_");
 	strcat(idxName, columnName);
+	strcat(idxName, ".idx");
 	return idxName;
 }
 

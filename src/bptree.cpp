@@ -271,20 +271,33 @@ BPT::ifexist(void* key)
 int
 BPT::bptree_createEmptyNode(unsigned int parentn, BPTNode** bptNode, unsigned char flag)
 {
-	///TODO: Freelist Management?
-	unsigned char* block = BufferManager::getInstance()->newblock(bpt_pager, BUFFER_FLAG_DIRTY);
-	BufferManager::getInstance()->pinblock(bpt_pager, bpt_pager->getNPages()-1);
-	bptree_initNode(bptNode, block);
-	(*bptNode)->parent_block = parentn;
-	(*bptNode)->is_leaf = flag;
-	(*bptNode)->freespc_ofs = IDX_BLOCKHEADER_SIZE;
-	(*bptNode)->cells_ofs = IDX_BLOCKHEADER_SIZE;
-	(*bptNode)->right_page = IDX_FLAG_NONPAGE;
-	(*bptNode)->page = bpt_pager->getNPages()-1;
-	(*bptNode)->ncells = 0;
-	(*bptNode)->cells->clear();
-    // For management
-    bpt_nodes.push_back(*bptNode);
+	///Freelist Management
+	if(bpt_fileheader.N_freepages >= 1) {
+		bptree_getNodeByPage(bpt_fileheader.Free_list, bptNode);
+		bpt_fileheader.Free_list = (*bptNode)->right_page;
+		bpt_fileheader.N_freepages--;
+		(*bptNode)->parent_block = parentn;
+		(*bptNode)->is_leaf = flag;
+		(*bptNode)->ncells = 0;
+		(*bptNode)->cells->clear();
+		(*bptNode)->freespc_ofs = (*bptNode)->cells_ofs;
+		(*bptNode)->right_page = IDX_FLAG_NONPAGE;
+	}
+	else { //new block
+		unsigned char* block = BufferManager::getInstance()->newblock(bpt_pager, BUFFER_FLAG_DIRTY);
+		BufferManager::getInstance()->pinblock(bpt_pager, bpt_pager->getNPages()-1);
+		bptree_initNode(bptNode, block);
+		(*bptNode)->parent_block = parentn;
+		(*bptNode)->is_leaf = flag;
+		(*bptNode)->freespc_ofs = IDX_BLOCKHEADER_SIZE;
+		(*bptNode)->cells_ofs = IDX_BLOCKHEADER_SIZE;
+		(*bptNode)->right_page = IDX_FLAG_NONPAGE;
+		(*bptNode)->page = bpt_pager->getNPages()-1;
+		(*bptNode)->ncells = 0;
+		(*bptNode)->cells->clear();
+	    // For management
+	    bpt_nodes.push_back(*bptNode);
+	}
 	return 1;
 }
 
@@ -827,11 +840,11 @@ BPT::print()
         bptree_getNodeByPage(qHead, &node);
         printf(" (%d) ", node->page);
         for(auto cellPtr: *(node->cells) ) {
-        	if(bpt_fileheader.Type = IDX_TYPE_STRING)
+        	if(bpt_fileheader.Type == IDX_TYPE_STRING)
 	            printf("%s ", (char*)cellPtr->val );
-	        else if(bpt_fileheader.Type = IDX_TYPE_FLOAT)
+	        else if(bpt_fileheader.Type == IDX_TYPE_FLOAT)
 	        	printf("%f ", *(float*)cellPtr->val );
-	        else if(bpt_fileheader.Type = IDX_TYPE_INT)
+	        else if(bpt_fileheader.Type == IDX_TYPE_INT)
 	        	printf("%d ", *(int*)cellPtr->val );
             if(node->is_leaf == IDX_FLAG_NONLEAF){
                 nextPageQueue.push_back(cellPtr->left_ptr.left_page);

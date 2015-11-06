@@ -2,6 +2,13 @@
 
 #include "NodeManager.h"
 
+// |
+// 
+// 
+// 
+// 
+// 
+
 class CatalogManager
 {
 private:
@@ -62,6 +69,7 @@ public:
 	Node* get_column_def(char* tableName);
 	Node* get_column_def(char* tableName, char* columnName);
 
+	int   get_column_id(char* tableName, char* columnName);
 	// function groups:
 	// test if condis true;
 	// call by assertfunc

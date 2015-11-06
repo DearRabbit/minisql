@@ -25,7 +25,7 @@ public:
 	// - returns:
 	// return nothing
 	int new_index(char* tableName, char* columnName, Node* data, vector<CursePair>& cursor);
-		
+	
 	// - function:
 	// Insert a new entry into an .idx file
 	// - note:

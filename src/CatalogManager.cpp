@@ -4,7 +4,7 @@ CatalogManager* CatalogManager::cm_delegate = NULL;
 
 CatalogManager::CatalogManager()
 {
-
+	cm_delegate = this;
 }
 
 CatalogManager::~CatalogManager()
