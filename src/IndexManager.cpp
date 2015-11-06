@@ -6,7 +6,6 @@ IndexManager* IndexManager::im_delegate = NULL;
 IndexManager::IndexManager()
 {
 	im_delegate = this;
-
 }
 
 IndexManager::~IndexManager()

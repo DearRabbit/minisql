@@ -113,7 +113,6 @@ private:
 	// (maybe a little weird)
 	std::map< const Pager*, std::map<int, int> > bm_filePool;
 
-
 	// for LRU
 	int LRU_clock[BLOCK_NUMBER];
 	int LRU_ptr;

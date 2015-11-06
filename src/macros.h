@@ -33,7 +33,7 @@ typedef std::pair<int, int> CursePair;
 #define  IDX_LEFTPTR_SIZE	 	(8)
 
 #define  IDX_FLAG_NOROOT		(-1)
-#define  IDX_FLAG_NONPAGE		(-2)
+#define  IDX_FLAG_NONPAGE		(-1)
 #define  IDX_FLAG_LEAF 			(1)
 #define  IDX_FLAG_NONLEAF		(0)
 
