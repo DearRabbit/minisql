@@ -94,7 +94,7 @@ bool Database::db_createIndex(Node *root)
 	if (m_catMgr.new_index_def(tableName, columnName, indexName))
 	{
 		vector<CursePair> cursor;
-		int columnId(tableName, columnName);
+		int columnId = m_catMgr.get_column_id(tableName, columnName);
 		Node *data = m_recMgr.get_column_data(tableName, columnId, cursor);
 		m_idxMgr.new_index(data, cursor);
 	}

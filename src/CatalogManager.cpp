@@ -1,13 +1,12 @@
 #include "CatalogManager.h"
 #include "BufferManager.h"
 #include <unistd.h>
+#include <assert.h>
 
 using std::pair;
 using std::vector;
 
 typedef pair<Node*, BlockPtr> NodePair;
-
-cm_catRoot;
 
 CatalogManager* CatalogManager::cm_delegate = NULL;
 
@@ -18,18 +17,18 @@ CatalogManager::CatalogManager()
 	Pager* pager;
 
 	if(access("minisql.frm", R_OK)!=0) {
-		bufmgr.createFile("minisql.frm");
+		bufmgr->createFile("minisql.frm");
 		cm_catRoot = cm_catNodeMgr.newEmptyNode();
 		cm_catNodeMgr.setRootNode(cm_catRoot);
 	}
 	else {
 		cm_catRoot = cm_catNodeMgr.newEmptyNode();
 		cm_catNodeMgr.setRootNode(cm_catRoot);
-		pager = bufmgr.getPager("minisql.frm");
+		pager = bufmgr->getPager("minisql.frm");
 
 		size_t const_offset = sizeof(int)*6 + sizeof(double);
 		size_t var_offset=0;
-		unsigned char* block0 = bufmgr.getblock(pager, 0, BUFFER_FLAG_NONDIRTY);
+		unsigned char* block0 = bufmgr->getblock(pager, 0, BUFFER_FLAG_NONDIRTY);
 		
 		memcpy((char*)&(cm_catRoot->operation), block0, sizeof(int) );
 		cm_catRoot->strval = new char[CAT_NAME_MAXSIZE];
@@ -49,12 +48,13 @@ CatalogManager::CatalogManager()
 
 		while(bPtr.lBlock!=CAT_FLAG_NONBLOCK || !bPtrStack.empty()) {
 			while(bPtr.lBlock!=CAT_FLAG_NONBLOCK) {
-				block = bufmgr.getblock(pager, bPtr.lBlock, BUFFER_FLAG_NONDIRTY);
+				block = bufmgr->getblock(pager, bPtr.lBlock, BUFFER_FLAG_NONDIRTY);
 				var_offset = bPtr.lOffset;
 				left = cm_catNodeMgr.newEmptyNode();
 				node->leftSon = left;
 				node = left;
 				left->strval = new char[CAT_NAME_MAXSIZE];
+				// ???
 				memcpy((char*)&left->operation, block+var_offset, sizeof(int));
 				memcpy((char*)&left->operation, block+var_offset, sizeof(int));
 				var_offset += sizeof(int);
@@ -63,13 +63,14 @@ CatalogManager::CatalogManager()
 				memcpy((char*)&left->numval, block+var_offset, sizeof(double));
 				var_offset += sizeof(double);
 				memcpy(&bPtr, block+var_offset, sizeof(BlockPtr));
-				bPtrStack.push_back(NodePair(left, bPtr);
+				bPtrStack.push_back(NodePair(left, bPtr));
 			}
 			while(bPtr.rBlock==CAT_FLAG_NONBLOCK&&!bPtrStack.empty()){
+				// ????
 				bPtr = bPtrStack.pop_back().second;
 				node = bPtrStack.pop_back().first;
 			}
-			block = bufmgr.getblock(pager, bPtr.rBlock, BUFFER_FLAG_NONDIRTY);
+			block = bufmgr->getblock(pager, bPtr.rBlock, BUFFER_FLAG_NONDIRTY);
 			var_offset = bPtr.rOffset;
 			left = cm_catNodeMgr.newEmptyNode();
 			node->rightSon = left;
@@ -83,7 +84,7 @@ CatalogManager::CatalogManager()
 			memcpy((char*)&left->numval, block+var_offset, sizeof(double));
 			var_offset += sizeof(double);
 			memcpy(&bPtr, block+var_offset, sizeof(BlockPtr));
-			bPtrStack.push_back(NodePair(left, bPtr);			
+			bPtrStack.push_back(NodePair(left, bPtr));			
 		}
 	}
 }
@@ -101,10 +102,24 @@ CatalogManager::~CatalogManager()
 int
 CatalogManager::new_table_def(Node* node)
 {
-	Node *ptr = cm_catNodeMgr.newCopyDataNode(node);
-	ptr->leftSon = cm_catRoot->leftSon;
-	cm_catRoot->leftSon = ptr;
+	Node *tablePtr = cm_catNodeMgr.newCopyDataNode(node);
+	tablePtr->leftSon = cm_catRoot->leftSon;
+	cm_catRoot->leftSon = tablePtr;
 	++cm_catRoot->numval;
+
+	Node *insertPtr = node->leftSon;
+	Node *columnPtr = nullptr;
+	while (insertPtr != nullptr)
+	{
+		columnPtr = cm_catNodeMgr.newCopyDataNode(insertPtr);
+		if (insertPtr->rightSon != nullptr)
+		{
+			columnPtr->rightSon = cm_catNodeMgr.newCopyDataNode(insertPtr->rightSon);
+		}
+		columnPtr->leftSon = tablePtr->rightSon;
+		tablePtr->rightSon = columnPtr;
+		insertPtr = insertPtr->leftSon;
+	}
 	return 0;
 }
 
@@ -120,7 +135,7 @@ CatalogManager::new_index_def(char* tableName, char* columnName, char* indexName
 			ptr = ptr->rightSon;
 			while (ptr != nullptr)
 			{
-				if (strcmp(columnName, ptr->strval) 
+				if (strcmp(columnName, ptr->strval))
 				{
 					ptr = ptr->rightSon;
 					tmpPtr = cm_catNodeMgr.newEmptyNode();
@@ -170,7 +185,7 @@ CatalogManager::delete_table_def(char* tableName)
 int
 CatalogManager::delete_index_def(char* indexName)
 {
-	string tmpStr(tableName);
+	string tmpStr(indexName);
 	tmpStr+=".idx";
 	BufferManager::getInstance()->deleteFile(tmpStr.c_str());
 
@@ -212,13 +227,79 @@ CatalogManager::delete_index_def(char* indexName)
 Node*
 CatalogManager::get_column_def(char* tableName)
 {
+	Node *tablePtr = cm_catRoot->leftSon;
+	Node *columnPtr = nullptr;
+	Node *returnRoot = nullptr;
+	Node *returnPtr = nullptr;
 
+	while (tablePtr != nullptr)
+	{
+		if (strcmp(tableName, tablePtr->strval))
+		{
+			columnPtr = tablePtr->rightSon;
+			while (columnPtr != nullptr)
+			{
+				// Ignore Primary key...
+				returnPtr = cm_catNodeMgr.newCopyDataNode(columnPtr);
+				returnPtr->leftSon = returnRoot;
+				returnRoot = returnPtr;
+				
+				columnPtr = columnPtr->leftSon;
+			}
+			return returnRoot;
+		}
+		tablePtr = tablePtr->leftSon;
+	}
+	assert(1);
 }
 
 Node*
 CatalogManager::get_column_def(char* tableName, char* columnName)
 {
-
+	Node *tablePtr = cm_catRoot->leftSon;
+	Node *columnPtr = nullptr;
+	while (tablePtr != nullptr)
+	{
+		if (strcmp(tableName, tablePtr->strval))
+		{
+			columnPtr = tablePtr->rightSon;
+			while (columnPtr != nullptr)
+			{
+				if (strcmp(columnName, columnPtr->strval))
+				{
+					return cm_catNodeMgr.newCopyDataNode(columnPtr);
+				}
+				columnPtr = columnPtr->leftSon;
+			}
+		}
+		tablePtr = tablePtr->leftSon;
+	}
+	assert(1);
+}
+int   
+CatalogManager::get_column_id(char* tableName, char* columnName)
+{
+	Node *tablePtr = cm_catRoot->leftSon;
+	Node *columnPtr = nullptr;
+	int count = 0;
+	while (tablePtr != nullptr)
+	{
+		if (strcmp(tableName, tablePtr->strval))
+		{
+			columnPtr = tablePtr->rightSon;
+			while (columnPtr != nullptr)
+			{
+				if (strcmp(columnName, columnPtr->strval))
+				{
+					return count;
+				}
+				++count;
+				columnPtr = columnPtr->leftSon;
+			}
+		}
+		tablePtr = tablePtr->leftSon;
+	}
+	assert(1);
 }
 
 
@@ -317,7 +398,7 @@ CatalogManager::assertExistTable(char* tableName)
 throw(TableExistException)
 {
 	if (ifexist_table(tableName))
-		throw TableExistException());
+		throw TableExistException();
 }
 
 void 
@@ -333,7 +414,7 @@ CatalogManager::assertNonExistTable(char* tableName)
 throw(TableNonExistException)
 {
 	if (!ifexist_table(tableName))
-		throw TableExistException());
+		throw TableExistException();
 }
 	
 void
@@ -357,7 +438,7 @@ throw(ColumnNonExistException)
 			while (ptr != nullptr)
 			{
 				if (strcmp(columnName, ptr->strval))
-					return true;
+					return;
 				ptr = ptr->leftSon;
 			}
 			throw ColumnNonExistException();
