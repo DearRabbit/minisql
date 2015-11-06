@@ -21,8 +21,8 @@ typedef struct
 		int left_page;
 		struct
 		{
-			unsigned int n_block;
-			unsigned int ofs_block;
+			int n_block;
+			int ofs_block;
 		} leaf_ptr;
 	} left_ptr;
 } BPTCell;
@@ -42,18 +42,6 @@ typedef struct
 	vector<BPTCell*>* cells;
 } BPTNode;		// combined with a block.	The block get and free must be handled in the tree
 
-typedef struct {
-    char  Header_string[16];
-	int   Type;		// int, float, or varchar(n)
-	int   Val_size;
-	int   Degree;
-	int   Root;
-	int   Free_list;
-	int   N_freepages;
-	int   Version_number;
-} IDXFileHeader;
-
-template<class K>
 class BPT
 {
 private:
@@ -63,12 +51,12 @@ private:
 public:
 	BPT(const char* filename);
 	~BPT();
-	int insertEntry(K key, unsigned int block_t, unsigned int block_ofs);
-	int deleteEntry(K key);
-	int select(Node* nodeAST, vector<CursePair>& curseTable);
-	// bulk loading
-	int construct(Node* nodeAST, vector<CursePair>& cTable);
-
+	int insertEntry(void* key, unsigned int block_t, unsigned int block_ofs);
+	int deleteEntry(void* key);
+	int 	 select(Node* nodeAST, vector<CursePair>& cursor);
+	// bulk loading( not implemented yet)
+	int   construct(Node* nodeAST, vector<CursePair>& cursor);
+	int 	ifexist(void* key);
 #if _DEBUG
     void print();
 #endif // _DEBUG
@@ -80,24 +68,21 @@ private:
 	int     bptree_getNodeByPage(unsigned int pagen, BPTNode** bptNode);
 	int         bptree_writeNode(BPTNode* bptNode);
 	int      bptree_freeNodePage(BPTNode* bptNode);
-	int       bptree_newNodeCell(BPTCell** bptCell, K key, int block_t);
-	int       bptree_newLeafCell(BPTCell** bptCell, K key, int block_t, unsigned int block_ofs);
+	int       bptree_newNodeCell(BPTCell** bptCell, void* key, int block_t);
+	int       bptree_newLeafCell(BPTCell** bptCell, void* key, int block_t, unsigned int block_ofs);
 	int        bptree_deleteCell(BPTNode* bptNode, unsigned int celln);
 	int        bptree_insertCell(BPTCell* bptCell, BPTNode* bptNode, unsigned int celln);
 	int  bptree_insertParentCell(BPTNode* leftKid, BPTCell* midcell ,BPTNode* rightKid);
 	int          bptree_freeCell(BPTCell* cell);
 
 	int             bptree_split(BPTNode* left, vector<BPTCell*> &vec, BPTNode* right );
-	K         bptree_getKey4Cell(BPTCell* cell);
-	int            bptree_search(K key, unsigned int* pagen, unsigned int* celln);
+	void*     bptree_getKey4Cell(BPTCell* cell);
+	int            bptree_search(void* key, int* pagen, int* celln);
 	int     bptree_addDeletedTag(BPTNode* node);
-	int           bptree_cellcmp(int key, void* val);
-	int           bptree_cellcmp(float key, void* val);
-	int           bptree_cellcmp(char* key, void* val);
+	int           bptree_cellcmp(void* key, void* val);
 };
 
-template<class K>
-BPT<K>::BPT(const char* filename)
+BPT::BPT(const char* filename)
 {
 	bpt_pager = BufferManager::getInstance()->getPager(filename);
 	unsigned char* block = BufferManager::getInstance()->getblock(bpt_pager, 0, BUFFER_FLAG_NONDIRTY);
@@ -105,8 +90,7 @@ BPT<K>::BPT(const char* filename)
 	memcpy(&bpt_fileheader, block, IDX_FILEHEADER_SIZE);
 }
 
-template<class K>
-BPT<K>::~BPT()
+BPT::~BPT()
 {
 	unsigned char* block = BufferManager::getInstance()->getblock(bpt_pager, 0, BUFFER_FLAG_DIRTY);
 	memcpy(block, &bpt_fileheader, IDX_FILEHEADER_SIZE);
@@ -116,12 +100,11 @@ BPT<K>::~BPT()
     }
 }
 
-template<class K>
 int
-BPT<K>::insertEntry(K key, unsigned int block_t, unsigned int block_ofs)
+BPT::insertEntry(void* key, unsigned int block_t, unsigned int block_ofs)
 {
-	unsigned int leaf_page;
-	unsigned int celln;
+	int leaf_page;
+	int celln;
 	// tree is empty construct the tree first
 	if(bpt_fileheader.Root == IDX_FLAG_NONPAGE) {
 		BPTNode* rootNode = NULL;
@@ -170,15 +153,14 @@ BPT<K>::insertEntry(K key, unsigned int block_t, unsigned int block_ofs)
 	return 1;
 }
 
-template<class K>
 int
-BPT<K>::deleteEntry(K key)
+BPT::deleteEntry(void* key)
 {
-	unsigned int leaf_page;
-	unsigned int celln;
+	int leaf_page;
+	int celln;
 	if( bptree_search(key, &leaf_page, &celln) ) {
         printf("Delete: key not found.\n");
-        printf("Key: %d", key);
+        printf("Key: %d", *(int*)key);
 		exit(1);		// deletion failed, key is not there
 	}
 	BPTNode* leafNode=NULL;
@@ -187,20 +169,183 @@ BPT<K>::deleteEntry(K key)
 	return 1;
 }
 
-template <class K>
 int
-BPT<K>::select(Node* nodeAST, vector<CursePair>& curseTable)
+BPT::select(Node* expr, vector<CursePair>& cursor)
 {
-    return 0;
+	void* value = new char[bpt_fileheader.Val_size];
+	Node* valPtr = expr->rightSon;
+    
+	if(bpt_fileheader.Type == IDX_TYPE_INT) {
+        int tInt = (int)(valPtr->numval);
+        memcpy(value, &tInt, bpt_fileheader.Val_size);
+	}
+	else if(bpt_fileheader.Type == IDX_TYPE_FLOAT) {
+        float tFloat = (float)(valPtr->numval);
+        memcpy(value, &tFloat, bpt_fileheader.Val_size);
+	}
+	else if(bpt_fileheader.Type == IDX_TYPE_STRING) {
+        memcpy(value, valPtr->strval, bpt_fileheader.Val_size);
+	}
+
+	int pagen, celln, notFound;
+	BPTNode* bptNode=NULL;
+	BPTNode* minNode=NULL;
+	CursePair blockPos;
+
+	notFound = bptree_search(value, &pagen, &celln);
+	bptree_getNodeByPage(pagen, &bptNode);
+
+	bptree_getNodeByPage(bpt_fileheader.Root, &minNode);
+	while(minNode->is_leaf == IDX_FLAG_NONLEAF) {
+		bptree_getNodeByPage(minNode->cells->at(0)->left_ptr.left_page, &minNode);
+	}
+
+	if(expr->operation == CMP_EQ) {
+		if(!notFound){
+			blockPos.first  = bptNode->cells->at(celln)->left_ptr.leaf_ptr.n_block;
+			blockPos.second = bptNode->cells->at(celln)->left_ptr.leaf_ptr.ofs_block;
+			cursor.push_back(blockPos);	// copy
+		}
+		// else not found
+	}
+	else if(expr->operation == CMP_NEQ) {
+		BPTNode* node = minNode;
+		if(notFound){
+			blockPos.first = -1;
+			blockPos.second = -1;
+		}
+		else {
+			blockPos.first  = bptNode->cells->at(celln)->left_ptr.leaf_ptr.n_block;
+			blockPos.second = bptNode->cells->at(celln)->left_ptr.leaf_ptr.ofs_block;
+		}
+		while(true) {
+			for(auto tmpCell : *(node->cells)) {
+				if(tmpCell->left_ptr.leaf_ptr.n_block == blockPos.first &&
+			 	   tmpCell->left_ptr.leaf_ptr.ofs_block == blockPos.second) {
+					
+					continue;
+				}
+				else {
+					cursor.push_back( CursePair(tmpCell->left_ptr.leaf_ptr.n_block, 
+												tmpCell->left_ptr.leaf_ptr.ofs_block));
+				}
+			}
+			if(node->right_page != IDX_FLAG_NONPAGE)
+				bptree_getNodeByPage(node->right_page, &node);
+			else
+				break;
+		}
+	}
+	else if(expr->operation == CMP_LT) {
+		BPTNode* node = minNode;
+		while(node->page != pagen) {
+			for(auto tmpCell : *(node->cells) ) {
+				cursor.push_back( CursePair(tmpCell->left_ptr.leaf_ptr.n_block, 
+											tmpCell->left_ptr.leaf_ptr.ofs_block));
+			}
+			bptree_getNodeByPage(node->right_page, &node);
+		}
+		for( int iCell=0; iCell < node->ncells; iCell++) {
+			if(iCell == celln) break;
+			BPTCell* tmpCell = node->cells->at(iCell);
+			cursor.push_back( CursePair(tmpCell->left_ptr.leaf_ptr.n_block, 
+										tmpCell->left_ptr.leaf_ptr.ofs_block));
+		}
+	}
+	else if(expr->operation == CMP_GT) {
+		BPTNode* node = bptNode;
+		int     iCell = celln;
+		if(celln == node->ncells) {//shit
+			if(node->right_page != IDX_FLAG_NONPAGE){
+				bptree_getNodeByPage(node->right_page, &node);
+				iCell = 0;
+			}
+		}
+		else {
+			iCell = celln + 1;
+		}
+		while(true) {
+			for(; iCell<node->ncells; iCell++) {
+				BPTCell* tmpCell = node->cells->at(iCell);
+				cursor.push_back( CursePair(tmpCell->left_ptr.leaf_ptr.n_block, 
+											tmpCell->left_ptr.leaf_ptr.ofs_block));
+			}
+			if(node->right_page != IDX_FLAG_NONPAGE) {
+				bptree_getNodeByPage(node->right_page, &node);
+				iCell = 0;
+			}
+			else
+				break;
+		}
+	}
+	else if(expr->operation == CMP_LE) {
+		BPTNode* node = minNode;
+		int     fCell = celln;
+		if(!notFound) {
+			fCell++;
+		}
+		// fCell is the pos where traverse should end
+		while(node->page != pagen) {
+			for(auto tmpCell : *(node->cells)) {
+				cursor.push_back( CursePair(tmpCell->left_ptr.leaf_ptr.n_block, 
+											tmpCell->left_ptr.leaf_ptr.ofs_block));
+			}
+			bptree_getNodeByPage(node->right_page, &node);
+		}
+		for(int iCell=0; iCell < fCell; iCell++) {
+			BPTCell* tmpCell = node->cells->at(iCell);
+			cursor.push_back( CursePair(tmpCell->left_ptr.leaf_ptr.n_block, 
+											tmpCell->left_ptr.leaf_ptr.ofs_block));
+		}
+	}
+	else if(expr->operation == CMP_GE) {
+		BPTNode* node = bptNode;
+		int     iCell = celln;
+		if(notFound) {
+			if(celln == node->ncells) {
+				if(node->right_page != IDX_FLAG_NONPAGE) {
+					bptree_getNodeByPage(node->right_page, &node);
+					iCell = 0;
+				}
+			}
+			else
+				iCell = celln + 1;
+		}
+		// else iCell = celln
+		while(true) {
+			for(; iCell<node->ncells; iCell++) {
+				BPTCell* tmpCell = node->cells->at(iCell);
+				cursor.push_back( CursePair(tmpCell->left_ptr.leaf_ptr.n_block, 
+											tmpCell->left_ptr.leaf_ptr.ofs_block));
+			}
+			if(node->right_page != IDX_FLAG_NONPAGE) {
+				bptree_getNodeByPage(node->right_page, &node);
+				iCell = 0;
+			}
+			else
+				break;
+		}
+	}
+    
+    delete[] (char*)value;
+    return 1;
+}
+
+int
+BPT::ifexist(void* key)
+{
+	int rst;
+	int pagen, celln;
+	rst = bptree_search(key, &pagen, &celln);
+	return !rst;
 }
 // - function: create an empty node and init its parent field and its isleaf field
-template<class K>
 int
-BPT<K>::bptree_createEmptyNode(unsigned int parentn, BPTNode** bptNode, unsigned char flag)
+BPT::bptree_createEmptyNode(unsigned int parentn, BPTNode** bptNode, unsigned char flag)
 {
 	///TODO: Freelist Management?
 	unsigned char* block = BufferManager::getInstance()->newblock(bpt_pager, BUFFER_FLAG_DIRTY);
-	BufferManager::getInstance()->pinblock(bpt_pager, bpt_pager->getNPages() );
+	BufferManager::getInstance()->pinblock(bpt_pager, bpt_pager->getNPages()-1);
 	bptree_initNode(bptNode, block);
 	(*bptNode)->parent_block = parentn;
 	(*bptNode)->is_leaf = flag;
@@ -215,9 +360,8 @@ BPT<K>::bptree_createEmptyNode(unsigned int parentn, BPTNode** bptNode, unsigned
 	return 1;
 }
 
-template<class K>
 int
-BPT<K>::bptree_initNodeFirstPage(BPTNode** node, unsigned char* block)
+BPT::bptree_initNodeFirstPage(BPTNode** node, unsigned char* block)
 {
 	*node = new BPTNode;
 	memcpy((unsigned char*)*node, block+IDX_FILEHEADER_SIZE, IDX_BLOCKHEADER_SIZE);
@@ -237,9 +381,8 @@ BPT<K>::bptree_initNodeFirstPage(BPTNode** node, unsigned char* block)
 	return 1;
 }
 // - function: init a node from its corresponding block
-template<class K>
 int
-BPT<K>::bptree_initNode(BPTNode** bptNode, unsigned char* block)
+BPT::bptree_initNode(BPTNode** bptNode, unsigned char* block)
 {
 	*bptNode = new BPTNode;
 	memcpy((unsigned char*)*bptNode, block, IDX_BLOCKHEADER_SIZE);
@@ -259,9 +402,8 @@ BPT<K>::bptree_initNode(BPTNode** bptNode, unsigned char* block)
 	return 1;
 }
 // - Flush the Node to the block in the buffer
-template<class K>
 int
-BPT<K>::bptree_writeNode(BPTNode* node)
+BPT::bptree_writeNode(BPTNode* node)
 {
 	if(node->page == 0) {
 		memcpy(node->block+IDX_FILEHEADER_SIZE, (unsigned char*)node, IDX_BLOCKHEADER_SIZE);
@@ -280,9 +422,8 @@ BPT<K>::bptree_writeNode(BPTNode* node)
 	return 1;
 }
 
-template<class K>
 int
-BPT<K>::bptree_getNodeByPage(unsigned int pagen, BPTNode** bptNode)
+BPT::bptree_getNodeByPage(unsigned int pagen, BPTNode** bptNode)
 {
 #if _DEBUG
 if(pagen>= bpt_pager->getNPages()){
@@ -317,9 +458,8 @@ assert(pagen < bpt_pager->getNPages());
 }
 // - function: destroy the BPTNode
 // - note: Not necessarily release the block
-template<class K>
 int
-BPT<K>::bptree_freeNodePage(BPTNode* bptNode)
+BPT::bptree_freeNodePage(BPTNode* bptNode)
 {
 	BufferManager::getInstance()->unpinblock(bpt_pager, bptNode->page);
 	for(unsigned int i=0; i<bptNode->ncells; i++) {
@@ -331,63 +471,32 @@ BPT<K>::bptree_freeNodePage(BPTNode* bptNode)
 }
 // - The creation of a cell. Destruction can happen at many places,
 // like in the destruction of a node and when splitting a parent node.
-template<class K>
 int
-BPT<K>::bptree_newNodeCell(BPTCell** bptCell, K key, int left_page)
+BPT::bptree_newNodeCell(BPTCell** bptCell, void* key, int left_page)
 {
 	*bptCell = new BPTCell;
 	(*bptCell)->val = new char[bpt_fileheader.Val_size];
 
-	switch(bpt_fileheader.Type){
-		case IDX_TYPE_INT:
-		case IDX_TYPE_FLOAT:
-			*(K*)((*bptCell)->val) = key;
-		break;
-		case IDX_TYPE_STRING:
-			strcpy( (char*)(*bptCell)->val, (char*)key);
-		break;
-		default:
-			delete[] (char*)((*bptCell)->val);
-			delete *bptCell;
-			*bptCell = NULL;
-			exit(1);		// fatal
-		break;
-	}
-
+	memcpy( (*bptCell)->val, key, bpt_fileheader.Val_size );
 	(*bptCell)->left_ptr.left_page = left_page;
 	return 1;
 }
 
-template<class K>
 int
-BPT<K>::bptree_newLeafCell(BPTCell** bptCell, K key, int page, unsigned int offset)
+BPT::bptree_newLeafCell(BPTCell** bptCell, void* key, int page, unsigned int offset)
 {
 	*bptCell = new BPTCell;
 	(*bptCell)->val = new char[bpt_fileheader.Val_size];
 
-	switch(bpt_fileheader.Type){
-		case IDX_TYPE_INT:
-		case IDX_TYPE_FLOAT:
-			*(K*)((*bptCell)->val) = (K)key;
-		break;
-		case IDX_TYPE_STRING:
-			strcpy(  (char*)((*bptCell)->val), (char*)key);
-		break;
-		default:
-			delete[] (char*)((*bptCell)->val);
-			delete *bptCell;
-			*bptCell = NULL;
-			exit(1);	//fatal
-		break;
-	}
+	memcpy( (*bptCell)->val, key, bpt_fileheader.Val_size );
+
 	(*bptCell)->left_ptr.leaf_ptr.n_block = page;
 	(*bptCell)->left_ptr.leaf_ptr.ofs_block = offset;
 	return 1;
 }
 
-template<class K>
 int
-BPT<K>::bptree_insertParentCell(BPTNode* leftKid, BPTCell* midcell ,BPTNode* rightKid)
+BPT::bptree_insertParentCell(BPTNode* leftKid, BPTCell* midcell ,BPTNode* rightKid)
 {
 	if(leftKid->page == bpt_fileheader.Root) {
 		BPTNode* newRoot;
@@ -463,9 +572,8 @@ BPT<K>::bptree_insertParentCell(BPTNode* leftKid, BPTCell* midcell ,BPTNode* rig
     return 1;
 }
 
-template<class K>
-	int
-BPT<K>::bptree_freeCell(BPTCell* cell)
+int
+BPT::bptree_freeCell(BPTCell* cell)
 {
 	delete[] (char*)cell->val;
 	delete          cell;
@@ -474,9 +582,8 @@ BPT<K>::bptree_freeCell(BPTCell* cell)
 }
 // - function: insert new cell in the block, ncells++, update freespc_ofs
 // - note:
-template<class K>
 int
-BPT<K>::bptree_insertCell(BPTCell* bptCell, BPTNode* bptNode, unsigned int celln)
+BPT::bptree_insertCell(BPTCell* bptCell, BPTNode* bptNode, unsigned int celln)
 {
 #if _DEBUG
 	assert(celln <= bptNode->ncells);
@@ -490,9 +597,8 @@ BPT<K>::bptree_insertCell(BPTCell* bptCell, BPTNode* bptNode, unsigned int celln
 	return 1;
 }
 
-template<class K>
-	int
-	BPT<K>::bptree_split(BPTNode* left, vector<BPTCell*>&  vec, BPTNode* right)
+int
+BPT::bptree_split(BPTNode* left, vector<BPTCell*>&  vec, BPTNode* right)
 {
 	unsigned int i;
 	for(i=0; i<(bpt_fileheader.Degree+1)/2; i++) {
@@ -504,27 +610,14 @@ template<class K>
 	return 1;
 }
 
-template<class K>
-K
-BPT<K>::bptree_getKey4Cell(BPTCell* cell)
+void*
+BPT::bptree_getKey4Cell(BPTCell* cell)
 {
-	switch(bpt_fileheader.Type) {
-		case IDX_TYPE_INT:
-		case IDX_TYPE_FLOAT:
-			return *(K*)(cell->val);
-		break;
-		case IDX_TYPE_STRING:
-			return (K)(char*)(cell->val);
-		break;
-		default:
-			exit(1);	//fatal error
-	}
-	}
-
+    return cell->val;
+}
 // - This function is just crazy
-template<class K>
 int
-BPT<K>::bptree_deleteCell(BPTNode* bptNode, unsigned int celln)
+BPT::bptree_deleteCell(BPTNode* bptNode, unsigned int celln)
 {
     // Destroy the cell
 	bptree_freeCell( bptNode->cells->at(celln) );	// another cell destroy
@@ -714,9 +807,8 @@ BPT<K>::bptree_deleteCell(BPTNode* bptNode, unsigned int celln)
 // - 0: the key is found
 // - pagen: the result leaf block
 // - celln: the result cell number
-template<class K>
 int
-BPT<K>::bptree_search(K key, unsigned int* pagen, unsigned int* celln)
+BPT::bptree_search(void* key, int* pagen, int* celln)
 {
 	BPTNode* root = NULL;
 
@@ -760,9 +852,8 @@ assert(root!=NULL);
 	return 1;
 }
 
-template<class K>
 int
-BPT<K>::bptree_addDeletedTag(BPTNode* node)
+BPT::bptree_addDeletedTag(BPTNode* node)
 {
 	node->right_page = bpt_fileheader.Free_list;
 	bpt_fileheader.Free_list = node->page;
@@ -770,33 +861,27 @@ BPT<K>::bptree_addDeletedTag(BPTNode* node)
 	return 1;
 }
 
-template<class K>
 int
-BPT<K>::bptree_cellcmp(int key, void* val)
+BPT::bptree_cellcmp(void* key, void* val)
 {
-	return key - *(int*)val;
-}
-
-template<class K>
-int
-BPT<K>::bptree_cellcmp(float key, void* val)
-{
-	return (int)(key - *(float*)val);
-}
-
-template<class K>
-int
-BPT<K>::bptree_cellcmp(char* key, void* val)
-{
-	return strcmp(key, (char*)val);
+	if(bpt_fileheader.Type == IDX_TYPE_INT) {
+		return *(int*)key - *(int*)val;
+	}
+	else if(bpt_fileheader.Type == IDX_TYPE_FLOAT) {
+		return *(float*)key - *(float*)val;
+	}
+	else if(bpt_fileheader.Type == IDX_TYPE_STRING) {
+		return strcmp((char*)key, (char*)val);
+	}
+    return 0;
 }
 
 #if _DEBUG
 #include <list>
 using std::list;
-template<class K>
+
 void
-BPT<K>::print()
+BPT::print()
 {
     if(bpt_fileheader.Root==IDX_FLAG_NONPAGE) return;
     list<int> nextPageQueue;
@@ -837,14 +922,12 @@ BPT<K>::print()
         node = NULL;
     }
 }
+#endif
 
-template<class K>
 int
-BPT<K>::construct(Node* root, vector<CursePair>& cTable)
+BPT::construct(Node* root, vector<CursePair>& cTable)
 {
-
+    return 0;
 }
 
 
-
-#endif

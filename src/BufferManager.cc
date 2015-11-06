@@ -1,6 +1,6 @@
 #include "BufferManager.h"
 #include <string.h>
-#include <io.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <utility>
@@ -73,7 +73,7 @@ BufferManager::getblock
 int
 BufferManager::createFile(const char* filename)
 {
-	if(_access(filename, 0) == 0 ) {
+	if( access(filename, R_OK) == 0 ) { //file already exists
 		exit(1);
 	}
 	else {
@@ -92,8 +92,8 @@ int
 BufferManager::deleteFile(const char* filename)
 {
 	remove(filename);
-
-	if(_access(filename, 0) == 0) {
+    
+	if( access(filename, R_OK) == 0) {  //file still exists
 		return 0;
 	}
 	return 1;
@@ -235,7 +235,7 @@ BufferManager::bm_setRecentlyUsed(const int block_id)
 Pager*
 BufferManager::getPager(const char* filename)	// The file must exist
 {
-	if(_access(filename, 0) != 0) {
+	if( access(filename, R_OK) != 0 ) {
         printf("FATAL: File missing.");
 
 		exit(1);

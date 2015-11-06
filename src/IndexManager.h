@@ -24,7 +24,7 @@ public:
 	// -- node: sequential data from table(rec)
 	// - returns:
 	// return nothing
-	int new_index(Node* data, vector<CursePair>& cursor);
+	int new_index(char* tableName, char* columnName, Node* data, vector<CursePair>& cursor);
 		
 	// - function:
 	// Insert a new entry into an .idx file
@@ -37,7 +37,7 @@ public:
 	// --- MINISQL_OK
 	// --- MINISQL_ECONSTRAINT: If there exists a record with the same key.
 	// --- MINISQL_EIO: If the table does not exist.
-	int new_entry_idx(char* tableName, char* columnName, CursePair& cursor);
+	int new_entry_idx(char* tableName, char* columnName, Node* data, vector<CursePair>& cursor);
 
 	// Index deletion happens in Catalogmgr::delete_index_def().
 
@@ -52,7 +52,7 @@ public:
 	// - return:
 	// --- MINISQL_OK
 	// --- MINISQL_EIO: If the table does not exist.
-	int delete_entry_idx(Node* data, vector<CursePair>& cursor);
+	int delete_entry_idx(char* tableName, char* columnName, Node* data);
 
 	// - function:
 	// Raw select from a select AST 
@@ -64,7 +64,7 @@ public:
 	// -- curseTable: records position array.
 	// - return:
 	// return nothing now
-	int select_record_raw(Node* node, vector<CursePair>& cursor);
+	int select_record_raw(char* tableName, char* columnName, Node* expr, vector<CursePair>& cursor);
 
 	// - function:
 	// If curseTable(vector of pos pairs) is empty,
@@ -76,11 +76,13 @@ public:
 	// -- curseTable: record block number & offset array, opaque to api.
 	// - return:
 	// n: Number of lines selected.(size of curseTable)
-	int select_record(Node* node, vector<CursePair>& cursor);
+	int select_record(char* tableName, char* columnName, Node* expr, vector<CursePair>& cursor);
 
 	// to do 
-	void assertMultipleKey(char* tableName, char* columnName, Node* data);
+	void assertMultipleKey(char* tableName, char* columnName, Node* data) throw(MultipleKeyException);
 
 	static IndexManager* getInstance();
 private:
+	char* catIdxName(char* tableName, char* columnName);
+	IDXFileHeader* newIdxHeader(char* fileName);
 };

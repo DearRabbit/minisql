@@ -74,3 +74,14 @@ public:
 	};
 	string name;
 };
+
+typedef struct {
+    char  Header_string[16];
+	int   Type;		// int, float, or varchar(n)
+	int   Val_size;
+	int   Degree;
+	int   Root;
+	int   Free_list;
+	int   N_freepages;
+	int   Version_number;
+} IDXFileHeader;
