@@ -244,9 +244,6 @@ CatalogManager::new_index_def(char* tableName, char* columnName, char* indexName
 	tmpStr += columnName;
 	tmpStr += ".idx";
 	BufferManager* bufmgr = BufferManager::getInstance();
-	bufmgr->createFile(tmpStr.c_str());
-	Pager* page = bufmgr->getPager(tmpStr.c_str());
-	unsigned char* block = bufmgr->newblock(page, BUFFER_FLAG_DIRTY);
 	IDXFileHeader idxHeader;
 	strncpy(idxHeader.Header_string, "MINISQL v0.01", 16*sizeof(char));
 
@@ -259,7 +256,7 @@ CatalogManager::new_index_def(char* tableName, char* columnName, char* indexName
 			{
 				if (strcmp(columnName, ptr->strval) == 0)
 				{
-                    if(ptr->operation == VAL_CHAR){
+					if(ptr->operation == VAL_CHAR){
                         idxHeader.Type = IDX_TYPE_STRING;
                         idxHeader.Val_size = ptr->numval;
                     }
@@ -271,13 +268,11 @@ CatalogManager::new_index_def(char* tableName, char* columnName, char* indexName
                         idxHeader.Type = IDX_TYPE_INT;
                         idxHeader.Val_size = sizeof(int);
                     }
-                    
                     idxHeader.N_freepages = 0;
                     idxHeader.Free_list = IDX_FLAG_NONPAGE;
                     idxHeader.Root = IDX_FLAG_NOROOT;
                     idxHeader.Degree = (BLOCK_SIZE - IDX_FILEHEADER_SIZE - IDX_BLOCKHEADER_SIZE) / (idxHeader.Val_size + IDX_LEFTPTR_SIZE);
-                    
-                    memcpy(block, &idxHeader, IDX_FILEHEADER_SIZE);
+	                    
 					ptr = ptr->rightSon;
 					tmpPtr = cm_catNodeMgr.newEmptyNode();
 					STRDUP_NEW(tmpPtr->strval, indexName);
@@ -289,6 +284,12 @@ CatalogManager::new_index_def(char* tableName, char* columnName, char* indexName
 					}
 					else
 					{
+						bufmgr->createFile(tmpStr.c_str());
+						Pager* page = bufmgr->getPager(tmpStr.c_str());
+						unsigned char* block = bufmgr->newblock(page, BUFFER_FLAG_DIRTY);
+						
+	                    memcpy(block, &idxHeader, IDX_FILEHEADER_SIZE);
+
 						ptr->rightSon = tmpPtr;
 						return 0;
 					}
