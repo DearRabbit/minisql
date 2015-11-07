@@ -213,24 +213,27 @@ throw (MultipleKeyException)
 {
 	char* fileName;
 	int rst;
-
+    IDXFileHeader* idxHeader;
+    
 	fileName = catIdxName(tableName, columnName);
-	if(data->operation == VAL_INT) {
+    idxHeader = newIdxHeader(fileName);
+	if(idxHeader->Type == IDX_TYPE_INT) {
         int tInt = data->numval;
 		BPT bpt(fileName);
 		rst = bpt.ifexist(&tInt);
 	}
-	else if(data->operation == VAL_FLOAT) {
+	else if(idxHeader->Type == IDX_TYPE_FLOAT) {
         float tFloat = data->numval;
 		BPT bpt(fileName);
 		rst = bpt.ifexist(&tFloat);
 	}
-	else if(data->operation == VAL_CHAR) {
+	else if(idxHeader->Type == IDX_TYPE_STRING) {
 		BPT bpt(fileName);
 		rst = bpt.ifexist(data->strval);
 	}
 
 	delete[] fileName;
+    delete idxHeader;
 	if(rst==1)
 		throw MultipleKeyException(tableName, columnName);
 }

@@ -278,7 +278,7 @@ CatalogManager::new_index_def(char* tableName, char* columnName, char* indexName
                     idxHeader.Root = IDX_FLAG_NOROOT;
                     idxHeader.Degree = (BLOCK_SIZE - IDX_FILEHEADER_SIZE - IDX_BLOCKHEADER_SIZE) / (idxHeader.Val_size + IDX_LEFTPTR_SIZE);
                     
-                    memcpy(block, &idxHeader, IDX_BLOCKHEADER_SIZE);
+                    memcpy(block, &idxHeader, IDX_FILEHEADER_SIZE);
 					ptr = ptr->rightSon;
 					tmpPtr = cm_catNodeMgr.newEmptyNode();
 					STRDUP_NEW(tmpPtr->strval, indexName);
