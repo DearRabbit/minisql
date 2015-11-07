@@ -45,7 +45,7 @@ bool Database::db_createTable(Node *root)
 			// **!!  v:to be modified
 			//       v:check again!!
 			//       v             v:table       v:column               v:default_name
-			m_catMgr.new_index_def(root->strval, ptr->rightSon->strval, (char*)"_def");
+			m_catMgr.new_index_def(root->strval, ptr->strval, (char*)"_def");
 			break;
 		}
 		ptr = ptr->leftSon;
