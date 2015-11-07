@@ -31,7 +31,8 @@ enum operationName
 	VAL_FLOAT,
 
 	DEF_UNIQUE,
-	DEF_PRIMARY
+	DEF_PRIMARY,
+	DEF_SINGLE_PRIMARY
 };
 
 typedef struct node

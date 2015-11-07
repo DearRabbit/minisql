@@ -26,15 +26,53 @@ bool Database::db_createTable(Node *root)
 	try
 	{
 		m_catMgr.assertExistTable(root->strval);
+
+		// pre-process
+		Node* prePtr = root;
+		Node* nextPtr = root->leftSon;
+		Node* curPtr = nullptr;
+		while (nextPtr != nullptr)
+		{
+			if (nextPtr->operation == DEF_SINGLE_PRIMARY)
+			{
+				nextPtr->operation = DEF_PRIMARY;
+				prePtr->leftSon = nextPtr->leftSon;
+				nextPtr->leftSon = nullptr;
+				curPtr = nextPtr;
+				break;
+			}
+			prePtr = nextPtr;
+			nextPtr = nextPtr->leftSon;
+		}
+		if (curPtr != nullptr)
+		{
+			nextPtr = root->leftSon;
+			while (nextPtr != nullptr)
+			{
+				if (strcmp(curPtr->strval, nextPtr->strval) == 0)
+				{
+					nextPtr->rightSon = curPtr;
+					break;
+				}
+				nextPtr = nextPtr->leftSon;
+			}
+			if (nextPtr == nullptr)
+				throw UndefinedPriKeyException(curPtr->strval);
+		}
 	}
 	catch (TableExistException)
 	{
 		fprintf(stderr, "Error: table %s already exists\n", root->strval);
 		return false;
 	}
+	catch (UndefinedPriKeyException e)
+	{
+		fprintf(stderr, "Error: table %s has no column named %s\n", root->strval, e.m_str);
+		return false;
+	}
+	
 
-	Node* ptr = root;
-    
+    Node* ptr = root->leftSon;
     m_catMgr.new_table_def(root);
 	// !! ignore multiple primary key
 	// !! take the lastdef of primary key
@@ -168,7 +206,8 @@ bool Database::db_insertVal(Node *root)
 				}
 				else
 				{
-					m_recMgr.assertMultipleKey(root->strval, ptrDef->strval, ptrData);
+					// rec need column name& column offset  :v
+					m_recMgr.assertMultipleKey(root->strval, ptrDef->strval, columnDef, ptrData);
 				}
 			}
 			ptrData = ptrData->leftSon;

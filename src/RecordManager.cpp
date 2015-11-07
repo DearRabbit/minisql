@@ -577,9 +577,28 @@ int RecordManager::print_all_record(char* tableName, Node* def)
 	return 0;
 }
 
-void RecordManager::assertMultipleKey(char* tableName, char* columnName, Node* data)
+void RecordManager::assertMultipleKey(char* tableName, char* columnName, Node* def, Node* data)
+throw (MultipleKeyException)
 {
-	// empty
+	vector<CursePair> cursor;
+	Node* eqexpr = m_columndata.newEmptyNode();
+	eqexpr->operation = CMP_EQ;
+	eqexpr->leftSon = m_columndata.newEmptyNode();
+	eqexpr->rightSon = m_columndata.newEmptyNode();
+
+	STRDUP_NEW(eqexpr->leftSon->strval, columnName);
+	if (data->strval != nullptr)
+	{
+		STRDUP_NEW(eqexpr->rightSon->strval, data->strval);
+	}
+	else
+	{
+		eqexpr->rightSon->numval = data->numval;
+	}
+
+	select_record_raw(tableName, def, eqexpr, cursor);
+	if (cursor.size() > 0)
+		throw MultipleKeyException(tableName, columnName);
 }
 void RecordManager::clean()
 {

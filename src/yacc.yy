@@ -270,7 +270,7 @@ table_constraint_def:
 			PRIMARY KEY '(' NAME ')'
 			{
 				$$ = YYAST->newEmptyNode();
-				$$->operation = DEF_PRIMARY;
+				$$->operation = DEF_SINGLE_PRIMARY;
 				$$->strval = $4;
 			}
 		;

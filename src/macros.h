@@ -54,6 +54,16 @@ class TableNonExistException {};
 class IndexNonExistException {};
 class ColumnNonExistException {};
 class NotUniqueKeyException {};
+class MulPrimaryKeyException {};
+class UndefinedPriKeyException
+{
+public:
+	UndefinedPriKeyException(char* node)
+	{
+		m_str = node;
+	}
+	char* m_str;
+};
 class TypeMismatchException
 {
 public:

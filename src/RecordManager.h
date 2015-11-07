@@ -125,7 +125,8 @@ public:
 	int print_all_record(char* tableName, Node* def);
 
 	// to do 
-	void assertMultipleKey(char* tableName, char* columnName, Node* data);
+	void assertMultipleKey(char* tableName, char* columnName, Node* def, Node* data)\
+			 throw (MultipleKeyException);
 	void clean();
 
 private:
