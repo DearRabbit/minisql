@@ -751,8 +751,9 @@ BPT::bptree_deleteCell(BPTNode* bptNode, unsigned int celln)
 int
 BPT::bptree_search(void* key, int* pagen, int* celln)
 {
-	BPTNode* root = NULL;
-
+    if(bpt_fileheader.Root == IDX_FLAG_NOROOT) return 1;
+ 
+    BPTNode* root = NULL;
 	bptree_getNodeByPage(  bpt_fileheader.Root , &root);
 
 #if _DEBUG
