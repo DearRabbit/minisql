@@ -24,7 +24,7 @@ typedef struct
 } BlockPtr;
 
 typedef struct
-{
+{// 4 + 32 + 8 + 32
 	int  operation;
 	char strval[CAT_NAME_MAXSIZE];
 	double numval;
