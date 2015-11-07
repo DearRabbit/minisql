@@ -77,7 +77,9 @@ bool RecordManager::cmpExpr(Node* expr, unsigned char *data, int columnId)
 {
 	bool result = false;
 	const float floate = 0.000001;
-	int strres = strncmp((char*)data, expr->rightSon->strval, m_header.columnLength[columnId]);
+	int strres = 0;
+	if (expr->rightSon->strval!= nullptr)
+		strres = strncmp((char*)data, expr->rightSon->strval, m_header.columnLength[columnId]);
 	float fres = *(float*)data - expr->rightSon->numval;
 	int intres = *(int*)data - (int)expr->rightSon->numval;
 
@@ -449,9 +451,40 @@ int RecordManager::print_select_record(char* tableName, Node* def, vector<CurseP
 	// print title
 	printBorder(tableLen, m_header.columnCount);
 	// print column name
+	for (int i = 0; i < m_header.columnCount; ++i)
+	{
+		putchar('|');
+		cout.width(tableLen[i]);
+		cout <<m_header.columnName[i];
+	}
+	putchar('|');
+	putchar('\n');
 	printBorder(tableLen, m_header.columnCount);
-
 	// print data
+	for (auto it:curseTable)
+	{
+		unsigned char* blockPtr =m_bufInstance->getblock(m_currentPage, it.first,BUFFER_FLAG_NONDIRTY)+it.second;
+		for (int i = 0; i < m_header.columnCount; ++i)
+			{
+				putchar('|');
+				cout.width(tableLen[i]);
+				if (m_header.columnType[i] == VAL_CHAR)
+				{
+					cout <<blockPtr;
+				}
+				else if (m_header.columnType[i] == VAL_FLOAT)
+				{
+					cout <<*(float*)blockPtr;
+				}
+				else
+				{
+					cout <<*(int*)blockPtr;
+				}
+				blockPtr += m_header.columnLength[i];
+			}
+		putchar('|');
+		putchar('\n');
+	}
 	printBorder(tableLen, m_header.columnCount);
 
 	delete [] tableLen;

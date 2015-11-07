@@ -320,7 +320,8 @@ opt_where:
 		;
 
 expr_list:
-			expr AND expr
+			expr
+		|	expr AND expr
 			{
 				$$ = YYAST->newEmptyNode();
 				$$->operation = OP_AND;
