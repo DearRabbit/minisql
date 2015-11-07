@@ -129,7 +129,7 @@ CatalogManager::~CatalogManager()
 
 	BufferManager* bufmgr = BufferManager::getInstance();
 	unsigned char* block;
-	Pager* pager = bufmgr.getPager("minisql.frm");
+	Pager* pager = bufmgr->getPager("minisql.frm");
 	int blockNumber, blockOffset, nodePerBlock;
 	BlockPtr bPtr;
 
@@ -141,9 +141,9 @@ CatalogManager::~CatalogManager()
 			blockNumber = nodeMap[node] / nodePerBlock;
 			blockOffset = (nodeMap[node]%nodePerBlock)*const_offset;
 			while(blockNumber>=pager->getNPages()) {
-				bufmgr.newblock(pager, BUFFER_FLAG_NONDIRTY);
+				bufmgr->newblock(pager, BUFFER_FLAG_NONDIRTY);
 			}
-			block = bufmgr.getblock(pager, blockNumber, BUFFER_FLAG_DIRTY);
+			block = bufmgr->getblock(pager, blockNumber, BUFFER_FLAG_DIRTY);
 			if(node->leftSon) {
 				bPtr.lBlock = nodeMap[node->leftSon] / nodePerBlock;
 				bPtr.lOffset = (nodeMap[node->leftSon]%nodePerBlock)*const_offset;
