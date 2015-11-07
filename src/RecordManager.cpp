@@ -356,6 +356,8 @@ int RecordManager::select_record(char* tableName, Node* def, Node* expr, vector<
 			+ it->second + initial_offset;
 		if (!cmpExpr(expr, block, columnId))
 			curseTable.erase(it);
+        else
+            ++it;
 	}
 	write_back();
 	return 0;

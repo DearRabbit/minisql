@@ -4,7 +4,6 @@
 %}
 
 %%
-and   		{ return SYS_AND; }
 create		{ return CREATE; }
 drop		{ return DROP; }
 insert		{ return INSERT; }
@@ -29,6 +28,7 @@ on			{ return ON; }
 from		{ return FROM; }
 into		{ return INTO; }
 where		{ return WHERE; }
+and   		{ return SYS_AND; }
 
 
 -?[0-9]+	|
