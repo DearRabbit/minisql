@@ -42,7 +42,9 @@ or | "||"	{ return OR; }
 							}
 
 '(''|[^'\n])*'			{
-							STRDUP_NEW(yylval.strval, yytext);
+							yylval.strval = new char[strlen(yytext)-1];
+							strncpy(yylval.strval, yytext+1, strlen(yytext)-2);
+							yylval.strval[strlen(yytext)-2] = 0;
 							return STRING;
 						}
 	

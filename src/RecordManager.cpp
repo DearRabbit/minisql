@@ -467,7 +467,7 @@ int RecordManager::print_all_record(char* tableName, Node* def)
 	assignColumnName(def);
 
 	int* tableLen = new int[m_header.columnCount];
-	for (int i = 0; i < m_header.columnCount; ++i)
+	for (int i = m_header.columnCount-1; i >=0 ; --i)
 	{
 		int maxlen = strlen(m_header.columnName[i]);
 		if (m_header.columnType[i] == VAL_INT)
@@ -495,17 +495,44 @@ int RecordManager::print_all_record(char* tableName, Node* def)
 
 	// print data
 	// TO-DO test
-
-	for (int i = 0; i < m_header.columnCount; ++i)
+	int blockNo = 0;
+	unsigned char* blockHead = m_bufInstance->getblock(m_currentPage, 0, BUFFER_FLAG_NONDIRTY);
+	unsigned char* blockPtr = blockHead + m_header.headerLength;
+	unsigned char* blockFlagPtr = blockPtr + m_header.valLength;
+	for (int j = m_header.entryCount; j > 0;)
 	{
-		putchar('|');
-		cout.width(tableLen[i]);
-		cout <<0;
+		if (*(int*)blockFlagPtr < 0)
+		{
+			for (int i = 0; i < m_header.columnCount; ++i)
+			{
+				putchar('|');
+				cout.width(tableLen[i]);
+				if (m_header.columnType[i] == VAL_CHAR)
+				{
+					cout <<blockPtr;
+				}
+				else if (m_header.columnType[i] == VAL_FLOAT)
+				{
+					cout <<*(float*)blockPtr;
+				}
+				else
+				{
+					cout <<*(int*)blockPtr;
+				}
+				blockPtr += m_header.columnLength[i];
+			}
+			putchar('|');
+			putchar('\n');
+			--j;
+		}
+		blockPtr += (m_header.valLength+sizeof(int));
+		if ((blockPtr) > (blockHead+BLOCK_SIZE))
+		{
+			blockHead = m_bufInstance->getblock(m_currentPage, ++blockNo, BUFFER_FLAG_NONDIRTY);
+			blockPtr = blockHead;
+			blockFlagPtr = blockHead + m_header.valLength;
+		}
 	}
-	putchar('|');
-	putchar('\n');
-	// TO-DO test
-	
 	printBorder(tableLen, m_header.columnCount);
 
 	delete [] tableLen;

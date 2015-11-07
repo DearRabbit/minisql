@@ -556,7 +556,7 @@ CatalogManager::assertNonExistTable(char* tableName)
 throw(TableNonExistException)
 {
 	if (!ifexist_table(tableName))
-		throw TableExistException();
+		throw TableNonExistException();
 }
 	
 void
