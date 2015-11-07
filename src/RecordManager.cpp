@@ -487,13 +487,25 @@ int RecordManager::print_all_record(char* tableName, Node* def)
 	{
 		putchar('|');
 		cout.width(tableLen[i]);
-		cout <<;
+		cout <<m_header.columnName[i];
 	}
 	putchar('|');
 	putchar('\n');
 	printBorder(tableLen, m_header.columnCount);
 
 	// print data
+	// TO-DO test
+
+	for (int i = 0; i < m_header.columnCount; ++i)
+	{
+		putchar('|');
+		cout.width(tableLen[i]);
+		cout <<0;
+	}
+	putchar('|');
+	putchar('\n');
+	// TO-DO test
+	
 	printBorder(tableLen, m_header.columnCount);
 
 	delete [] tableLen;
