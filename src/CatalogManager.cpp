@@ -248,6 +248,8 @@ CatalogManager::new_index_def(char* tableName, char* columnName, char* indexName
 	Pager* page = bufmgr->getPager(tmpStr.c_str());
 	unsigned char* block = bufmgr->newblock(page, BUFFER_FLAG_DIRTY);
 	// TO-DO
+	IDXFileHeader idxHeader;
+	strncpy(idxHeader.Header_string, "MINISQL v0.01", 16*sizeof(char));
 
 	while (ptr != nullptr)
 	{
@@ -258,6 +260,25 @@ CatalogManager::new_index_def(char* tableName, char* columnName, char* indexName
 			{
 				if (strcmp(columnName, ptr->strval) == 0)
 				{
+                    if(ptr->operation == VAL_CHAR){
+                        idxHeader.Type = IDX_TYPE_STRING;
+                        idxHeader.Val_size = ptr->numval;
+                    }
+                    else if(ptr->operation == VAL_FLOAT){
+                        idxHeader.Type = IDX_TYPE_FLOAT;
+                        idxHeader.Val_size = sizeof(float);
+                    }
+                    else if(ptr->operation == VAL_INT){
+                        idxHeader.Type = IDX_TYPE_INT;
+                        idxHeader.Val_size = sizeof(int);
+                    }
+                    
+                    idxHeader.N_freepages = 0;
+                    idxHeader.Free_list = IDX_FLAG_NONPAGE;
+                    idxHeader.Root = IDX_FLAG_NOROOT;
+                    idxHeader.Degree = (BLOCK_SIZE - IDX_FILEHEADER_SIZE - IDX_BLOCKHEADER_SIZE) / (idxHeader.Val_size + IDX_LEFTPTR_SIZE);
+                    
+                    memcpy(block, &idxHeader, IDX_BLOCKHEADER_SIZE);
 					ptr = ptr->rightSon;
 					tmpPtr = cm_catNodeMgr.newEmptyNode();
 					STRDUP_NEW(tmpPtr->strval, indexName);
