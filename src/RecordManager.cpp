@@ -49,6 +49,7 @@ void RecordManager::write_back()
 	delete [] m_header.columnType;
 	delete [] m_header.columnLength;
 	delete [] m_header.columnName;
+	m_header.columnName = nullptr;
 }
 void RecordManager::assignColumnName(Node* data)
 {
@@ -471,7 +472,7 @@ int RecordManager::print_all_record(char* tableName, Node* def)
 	{
 		int maxlen = strlen(m_header.columnName[i]);
 		if (m_header.columnType[i] == VAL_INT)
-			maxlen = (maxlen > 10) ? maxlen : 10;
+			maxlen = (maxlen > 11) ? maxlen : 11;
 		else if (m_header.columnType[i] == VAL_FLOAT)
 			maxlen = (maxlen > 8) ? maxlen : 8;
 		else
@@ -525,7 +526,8 @@ int RecordManager::print_all_record(char* tableName, Node* def)
 			putchar('\n');
 			--j;
 		}
-		blockPtr += (m_header.valLength+sizeof(int));
+		blockPtr = (blockFlagPtr+sizeof(int));
+		blockFlagPtr += (m_header.valLength+sizeof(int));
 		if ((blockPtr) > (blockHead+BLOCK_SIZE))
 		{
 			blockHead = m_bufInstance->getblock(m_currentPage, ++blockNo, BUFFER_FLAG_NONDIRTY);
