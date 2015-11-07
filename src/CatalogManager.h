@@ -99,8 +99,8 @@ public:
 
 	int   get_column_id(char* tableName, char* columnName);
 
-	void print_show_tables(char *tableName);
-	
+	void print_show_tables();
+
 	// function groups:
 	// test if condis true;
 	// call by assertfunc

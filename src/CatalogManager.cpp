@@ -459,7 +459,18 @@ CatalogManager::get_column_id(char* tableName, char* columnName)
 	}
 	exit(-1);
 }
-
+void 
+CatalogManager::print_show_tables()
+{
+	Node *ptr = cm_catRoot->leftSon;
+	printf("+----------------+\n");
+	while (ptr != nullptr)
+	{
+		printf("|%16s|\n", ptr->strval);
+		printf("+----------------+\n");
+		ptr = ptr->leftSon;
+	}
+}
 
 // done
 bool

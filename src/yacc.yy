@@ -71,8 +71,8 @@ int yyerror(NodeManager *YYAST, const char* str)
 %token GE
 
 %type <treeNode> sql 
-	create drop select insert delete display
-	table_name index_name column_name show_tables
+	create drop select insert delete 
+	table_name index_name column_name 
 	create_table_element_list create_table_element
 	column_def data_type opt_where comparison
 	table_constraint_def expr expr_list
@@ -104,6 +104,11 @@ stmt:		QUIT CMD_FINISH
 				}
 				yyBatchFlag = 1;
 				delete ($2);
+			}
+		|	SHOW TABLES_IN_SHOW CMD_FINISH
+			{
+				Database::getInstance()->show_tables();
+				MINISQL_PROMPT1();
 			}
 		|	sql_list CMD_FINISH
 			{
@@ -158,7 +163,6 @@ sql:
 		|	select 
 		|	insert
 		|	delete
-		|	display
 		;
 
 /* --- create --- */ 
@@ -451,17 +455,6 @@ delete:
 
 
 /* --- other --- */
-display:
-			show_tables
-		;
-
-show_tables:
-			SHOW TABLES_IN_SHOW
-			{
-				$$ = YYAST->newEmptyNode();
-				$$->operation = OP_SHOWTABLES;
-			}
-		;
 
 error_statment:
 			error	

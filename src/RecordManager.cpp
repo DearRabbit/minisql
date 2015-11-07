@@ -350,7 +350,7 @@ int RecordManager::select_record(char* tableName, Node* def, Node* expr, vector<
 			break;
 		}	
 	}
-	for (auto it=curseTable.begin(); it!=curseTable.end() ;it++)
+	for (auto it=curseTable.begin(); it!=curseTable.end();)
 	{
 		block = m_bufInstance->getblock(m_currentPage, it->first, BUFFER_FLAG_NONDIRTY)\
 			+ it->second + initial_offset;

@@ -516,6 +516,10 @@ void Database::processAST()
 	}
 	clean();
 }
+void Database::show_tables()
+{
+	m_catMgr.print_show_tables();
+}
 
 void Database::clean()
 {
