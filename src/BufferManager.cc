@@ -74,18 +74,17 @@ int
 BufferManager::createFile(const char* filename)
 {
 	if( access(filename, R_OK) == 0 ) { //file already exists
-		exit(1);
+        remove(filename);
 	}
-	else {
-		FILE* file;
+	
+    FILE* file;
 
-		file = fopen(filename, "w");
+    file = fopen(filename, "w");
 
-		fclose(file);
-		// bm_readblock(filename, 0);
+    fclose(file);
+    // bm_readblock(filename, 0);
 
-		return 0;
-	}
+    return 0;
 }
 
 int

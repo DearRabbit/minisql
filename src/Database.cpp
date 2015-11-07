@@ -92,7 +92,7 @@ bool Database::db_createIndex(Node *root)
 	// check if there's idx on the column already!
 	// if not, new index in idxmgr
 	// something...!!!!
-	if (m_catMgr.new_index_def(tableName, columnName, indexName))
+	if (!m_catMgr.new_index_def(tableName, columnName, indexName))
 	{
 		vector<CursePair> cursor;
 		int columnId = m_catMgr.get_column_id(tableName, columnName);
@@ -440,7 +440,7 @@ bool Database::processSingleAST(Node* root)
 			result = db_dropTable(root);
 			break;
 		case OP_DROP_INDEX:
-			result = db_createIndex(root);
+			result = db_dropIndex(root);
 			break;
 		case OP_INSERT:
 			result = db_insertVal(root);

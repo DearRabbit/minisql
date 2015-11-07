@@ -247,7 +247,6 @@ CatalogManager::new_index_def(char* tableName, char* columnName, char* indexName
 	bufmgr->createFile(tmpStr.c_str());
 	Pager* page = bufmgr->getPager(tmpStr.c_str());
 	unsigned char* block = bufmgr->newblock(page, BUFFER_FLAG_DIRTY);
-	// TO-DO
 	IDXFileHeader idxHeader;
 	strncpy(idxHeader.Header_string, "MINISQL v0.01", 16*sizeof(char));
 
@@ -352,8 +351,9 @@ CatalogManager::delete_index_def(char* indexName)
 						if (tmpPtr->strval == nullptr)
 							tmpPtr->rightSon = indexPtr->leftSon;
 						// else
-						else
+                        else
 							tmpPtr->leftSon = indexPtr->leftSon;
+                        return 0;
 					}
 					tmpPtr = indexPtr;
 					indexPtr = indexPtr->leftSon;
