@@ -35,7 +35,7 @@ int yyerror(NodeManager *YYAST, const char* str)
 %token <strval> NAME
 %token <strval> STRING
 
-%token AND
+%token SYS_AND
 %token CHAR
 %token CMD_FINISH
 %token CREATE
@@ -74,15 +74,10 @@ int yyerror(NodeManager *YYAST, const char* str)
 	table_name index_name column_name show_tables
 	create_table_element_list create_table_element
 	column_def data_type opt_where comparison
-	table_constraint_def expr_list expr 
+	table_constraint_def expr expr_list
 	column_value_list column_value insert_val_list
 
 %type <numval> column_def_opt
-
-%left AND
-%left EQ NEQ LT GT LE GE
-%left '+' '-'
-%left '*' '/'
 
 %%
 stmt_list:	
@@ -321,14 +316,13 @@ opt_where:
 
 expr_list:
 			expr
-		|	expr AND expr
+		|	expr_list SYS_AND expr
 			{
 				$$ = YYAST->newEmptyNode();
 				$$->operation = OP_AND;
 				$$->leftSon = $1;
 				$$->rightSon = $3;
 			}
-		/*|	expr OR expr*/
 		;
 
 expr:
