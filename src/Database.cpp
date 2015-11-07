@@ -34,6 +34,8 @@ bool Database::db_createTable(Node *root)
 	}
 
 	Node* ptr = root;
+    
+    m_catMgr.new_table_def(root);
 	// !! ignore multiple primary key
 	// !! take the lastdef of primary key
 	while (ptr != nullptr)
@@ -51,7 +53,6 @@ bool Database::db_createTable(Node *root)
 		ptr = ptr->leftSon;
 	}
 
-	m_catMgr.new_table_def(root);
 	// always print 0
 	printf("Query OK, 0 rows affected\n");
 	return true;
