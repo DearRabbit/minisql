@@ -1,7 +1,7 @@
 #pragma once
 
 #include "NodeManager.h"
-
+#include <map>
 // +------------------+--------
 // |Hedader_string(16)|
 // +------------------+--------
@@ -10,6 +10,10 @@
 //
 // Corresponds to a Node
 const int CAT_NAME_MAXSIZE = 32;
+
+using std::map;
+
+typedef map<Node*, int> NodePosMap;
 
 typedef struct 
 {
@@ -36,6 +40,7 @@ private:
 	NodeManager cm_catNodeMgr;
 	Node*       cm_catRoot;
 	vector<Node*> cm_idxList;
+	NodePosMap  nodeMap;
 public:
 	CatalogManager();
 	~CatalogManager();

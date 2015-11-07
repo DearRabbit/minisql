@@ -45,17 +45,19 @@ CatalogManager::CatalogManager()
 
 		unsigned char* block;
 		vector<NodePair> bPtrStack;
-
+		int count=0;
 		while(bPtr.lBlock!=CAT_FLAG_NONBLOCK || !bPtrStack.empty()) {
 			while(bPtr.lBlock!=CAT_FLAG_NONBLOCK) {
 				block = bufmgr->getblock(pager, bPtr.lBlock, BUFFER_FLAG_NONDIRTY);
 				var_offset = bPtr.lOffset;
 				left = cm_catNodeMgr.newEmptyNode();
+				
+				// nodeMap[left] = count++;
+
 				node->leftSon = left;
 				node = left;
 				left->strval = new char[CAT_NAME_MAXSIZE];
-				// ???
-				memcpy((char*)&left->operation, block+var_offset, sizeof(int));
+				
 				memcpy((char*)&left->operation, block+var_offset, sizeof(int));
 				var_offset += sizeof(int);
 				memcpy((left->strval), block+var_offset, CAT_NAME_MAXSIZE);
@@ -63,44 +65,117 @@ CatalogManager::CatalogManager()
 				memcpy((char*)&left->numval, block+var_offset, sizeof(double));
 				var_offset += sizeof(double);
 				memcpy(&bPtr, block+var_offset, sizeof(BlockPtr));
+				
 				bPtrStack.push_back(NodePair(left, bPtr));
 			}
-			while(bPtr.rBlock==CAT_FLAG_NONBLOCK&&!bPtrStack.empty()){
+			while(bPtr.rBlock == CAT_FLAG_NONBLOCK && !bPtrStack.empty()){
 				// ????
 				/*
 				bPtr = bPtrStack.pop_back().second;
 				node = bPtrStack.pop_back().first;
 				*/
+				bPtrStack.pop_back();
 				bPtr = bPtrStack.back().second;
 				node = bPtrStack.back().first;
 			}
-			block = bufmgr->getblock(pager, bPtr.rBlock, BUFFER_FLAG_NONDIRTY);
-			var_offset = bPtr.rOffset;
-			left = cm_catNodeMgr.newEmptyNode();
-			node->rightSon = left;
-			node = left;
-			left->strval = new char[CAT_NAME_MAXSIZE];
-			memcpy((char*)&left->operation, block+var_offset, sizeof(int));
-			memcpy((char*)&left->operation, block+var_offset, sizeof(int));
-			var_offset += sizeof(int);
-			memcpy((left->strval), block+var_offset, CAT_NAME_MAXSIZE);
-			var_offset += CAT_NAME_MAXSIZE;
-			memcpy((char*)&left->numval, block+var_offset, sizeof(double));
-			var_offset += sizeof(double);
-			memcpy(&bPtr, block+var_offset, sizeof(BlockPtr));
-			bPtrStack.push_back(NodePair(left, bPtr));			
+			if(bPtr.rBlock != CAT_FLAG_NONBLOCK) {
+				bPtrStack.pop_back();
+				block = bufmgr->getblock(pager, bPtr.rBlock, BUFFER_FLAG_NONDIRTY);
+				var_offset = bPtr.rOffset;
+				left = cm_catNodeMgr.newEmptyNode();
+
+				// nodeMap[left] = count++;
+				
+				node->rightSon = left;
+				node = left;
+				left->strval = new char[CAT_NAME_MAXSIZE];
+				
+				memcpy((char*)&left->operation, block+var_offset, sizeof(int));
+				var_offset += sizeof(int);
+				memcpy((left->strval), block+var_offset, CAT_NAME_MAXSIZE);
+				var_offset += CAT_NAME_MAXSIZE;
+				memcpy((char*)&left->numval, block+var_offset, sizeof(double));
+				var_offset += sizeof(double);
+				memcpy(&bPtr, block+var_offset, sizeof(BlockPtr));
+				
+				bPtrStack.push_back(NodePair(left, bPtr));			
+			}
 		}
 	}
 }
 
 CatalogManager::~CatalogManager()
 {
+	size_t const_offset = sizeof(int)*6 + sizeof(double);
+	size_t var_offset=0;
 	Node* node = cm_catRoot;
+	int nodeCount=0;
+	NodePosMap nodeMap;
 	vector<Node*> tStack;
 
-	while(node!=nullptr || !tStack.empty()) {
-		
+	while(node!=nullptr||!tStack.empty()) {
+		if(node!=nullptr) {
+			nodeMap[node] = nodeCount++;
+			if(node->rightSon!=nullptr) {
+				tStack.push_back(node->rightSon);
+			}
+			node = node->leftSon;
+		}
+		else {
+			node = tStack.back();
+			tStack.pop_back();
+		}
 	}
+
+	BufferManager* bufmgr = BufferManager::getInstance();
+	unsigned char* block;
+	Pager* pager = bufmgr.getPager("minisql.frm");
+	int blockNumber, blockOffset, nodePerBlock;
+	BlockPtr bPtr;
+
+	nodePerBlock = BLOCK_SIZE / const_offset;
+
+	node = cm_catRoot;
+	while( node!=nullptr || !tStack.empty() ) {
+		if(node!=nullptr) {
+			blockNumber = nodeMap[node] / nodePerBlock;
+			blockOffset = (nodeMap[node]%nodePerBlock)*const_offset;
+			while(blockNumber>=pager->getNPages()) {
+				bufmgr.newblock(pager, BUFFER_FLAG_NONDIRTY);
+			}
+			block = bufmgr.getblock(pager, blockNumber, BUFFER_FLAG_DIRTY);
+			if(node->leftSon) {
+				bPtr.lBlock = nodeMap[node->leftSon] / nodePerBlock;
+				bPtr.lOffset = (nodeMap[node->leftSon]%nodePerBlock)*const_offset;
+			}
+			else {
+				bPtr.lBlock = bPtr.lOffset = -1;
+			}
+			if(node->rightSon) {
+				bPtr.rBlock = nodeMap[node->rightSon] / nodePerBlock;
+				bPtr.rOffset = (nodeMap[node->rightSon]%nodePerBlock)*const_offset;
+			}
+			else {
+				bPtr.rBlock = bPtr.rOffset = -1;
+			}
+			var_offset = blockOffset;
+			memcpy(block + var_offset, &node->operation, sizeof(int)); var_offset+=sizeof(int);
+			memcpy(block + var_offset, node->strval, CAT_NAME_MAXSIZE); var_offset+=CAT_NAME_MAXSIZE;
+			memcpy(block + var_offset, &node->numval, sizeof(double)); var_offset+=sizeof(double);
+			memcpy(block + var_offset, &bPtr, sizeof(BlockPtr));
+
+			if(node->rightSon!=nullptr) {
+				tStack.push_back(node->rightSon);
+			}
+			node = node->leftSon;
+		}
+		else {
+			node = tStack.back();
+			tStack.pop_back();
+		}
+	}
+
+	cm_catNodeMgr.clean();
 }
 
 int
