@@ -327,9 +327,7 @@ CatalogManager::delete_table_def(char* tableName)
 int
 CatalogManager::delete_index_def(char* indexName)
 {
-	string tmpStr(indexName);
-	tmpStr+=".idx";
-	BufferManager::getInstance()->deleteFile(tmpStr.c_str());
+	string tmpStr;
 
 	Node *tablePtr = cm_catRoot->leftSon;
 	Node *columnPtr = nullptr;
@@ -349,8 +347,14 @@ CatalogManager::delete_index_def(char* indexName)
 					if (strcmp(indexName, indexPtr->strval) == 0)
 					{
 						// first node: tp = primary key
-						if (tmpPtr->strval == nullptr)
+                        if (tmpPtr->strval == nullptr){
+                            tmpStr = tablePtr->strval;
+                            tmpStr += "_";
+                            tmpStr += columnPtr->strval;
+                            tmpStr += ".idx";
+                            BufferManager::getInstance()->deleteFile(tmpStr.c_str());
 							tmpPtr->rightSon = indexPtr->leftSon;
+                        }
 						// else
                         else
 							tmpPtr->leftSon = indexPtr->leftSon;
