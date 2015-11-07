@@ -192,16 +192,20 @@ IndexManager::select_record(char* tableName, char* columnName, Node* expr, vecto
 		BPT bpt(fileName);
 		bpt.select(expr, localCusor);
 	}
-	for(opair = cursor.begin(); opair!=cursor.end(); opair++) {
+    
+    int flag = 0;
+	for(opair = cursor.begin(); opair!=cursor.end(); /*opair++*/) {
+        flag=0;
 		for(ipair = localCusor.begin(); ipair!=localCusor.end(); ipair++){
 			if(ipair->first == opair->first && ipair->second == opair->second) {
-				continue;
-			}
-			else {
-				cursor.erase(opair);
-				localCusor.erase(ipair);
+                flag = 1;
+                break;
 			}
 		}
+        if(!flag) {
+            opair = cursor.erase(opair);
+        }
+        else opair++;
 	}
 
 	delete[] fileName;
