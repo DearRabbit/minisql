@@ -444,6 +444,7 @@ int RecordManager::print_select_record(char* tableName, Node* def, vector<CurseP
 		tableLen[i] = maxlen; 
 	}
 
+	// TO-DO
 	// print title
 	printBorder(tableLen, m_header.columnCount);
 	// print column name
@@ -482,6 +483,14 @@ int RecordManager::print_all_record(char* tableName, Node* def)
 	// print title
 	printBorder(tableLen, m_header.columnCount);
 	// print column name
+	for (int i = 0; i < m_header.columnCount; ++i)
+	{
+		putchar('|');
+		cout.width(tableLen[i]);
+		cout <<;
+	}
+	putchar('|');
+	putchar('\n');
 	printBorder(tableLen, m_header.columnCount);
 
 	// print data
