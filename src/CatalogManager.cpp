@@ -149,14 +149,14 @@ CatalogManager::~CatalogManager()
 				bPtr.lOffset = (nodeMap[node->leftSon]%nodePerBlock)*const_offset;
 			}
 			else {
-				bPtr.lBlock = bPtr.lOffset = -1;
+				bPtr.lBlock = bPtr.lOffset = CAT_FLAG_NONBLOCK;
 			}
 			if(node->rightSon) {
 				bPtr.rBlock = nodeMap[node->rightSon] / nodePerBlock;
 				bPtr.rOffset = (nodeMap[node->rightSon]%nodePerBlock)*const_offset;
 			}
 			else {
-				bPtr.rBlock = bPtr.rOffset = -1;
+				bPtr.rBlock = bPtr.rOffset = CAT_FLAG_NONBLOCK;
 			}
 			var_offset = blockOffset;
 			memcpy(block + var_offset, &node->operation, sizeof(int)); var_offset+=sizeof(int);
