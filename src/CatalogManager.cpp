@@ -495,7 +495,7 @@ CatalogManager::if_unique_key(char* tableName, char* columnName)
 	Node *ptr = cm_catRoot->leftSon;
 	while (ptr != nullptr)
 	{
-		if (strcmp(tableName, ptr->strval))
+		if (strcmp(tableName, ptr->strval) == 0)
 		{
 			ptr = ptr->rightSon;
 			while (ptr != nullptr)
@@ -518,7 +518,7 @@ CatalogManager::ifexist_index_on_column(char* tableName, char* columnName)
 	Node *ptr = cm_catRoot->leftSon;
 	while (ptr != nullptr)
 	{
-		if (strcmp(tableName, ptr->strval))
+		if (strcmp(tableName, ptr->strval) == 0)
 		{
 			ptr = ptr->rightSon;
 			while (ptr != nullptr)
