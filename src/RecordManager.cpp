@@ -420,9 +420,9 @@ Node* RecordManager::get_column_data(char* tableName, int columnId, vector<Curse
 			blockPtr = block+m_header.valLength;
 		}
 	}
-
+    root->leftSon->operation = m_header.columnType[columnId];
 	write_back();
-	return root;
+	return root->leftSon;
 }
 
 int RecordManager::print_select_record(char* tableName, Node* def, vector<CursePair>& curseTable)

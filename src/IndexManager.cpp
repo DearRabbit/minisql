@@ -22,6 +22,7 @@ IndexManager::getInstance()
 int 
 IndexManager::new_index(char* tableName, char* columnName, Node* data, vector<CursePair>& cursor)
 {
+    
 	char* fileName;
 	Node* node=data;
 	vector<CursePair>::iterator it = cursor.begin();
