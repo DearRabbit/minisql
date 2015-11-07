@@ -509,17 +509,17 @@ int RecordManager::print_all_record(char* tableName, Node* def)
 				cout.width(tableLen[i]);
 				if (m_header.columnType[i] == VAL_CHAR)
 				{
-					cout <<block;
+					cout <<blockPtr;
 				}
 				else if (m_header.columnType[i] == VAL_FLOAT)
 				{
-					cout <<*(float*)block;
+					cout <<*(float*)blockPtr;
 				}
 				else
 				{
-					cout <<*(int*)block;
+					cout <<*(int*)blockPtr;
 				}
-				block += m_header.columnLength[i];
+				blockPtr += m_header.columnLength[i];
 			}
 			putchar('|');
 			putchar('\n');
