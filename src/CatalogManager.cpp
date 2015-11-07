@@ -35,7 +35,7 @@ CatalogManager::CatalogManager()
 		memcpy(cm_catRoot->strval, block0+sizeof(int), CAT_NAME_MAXSIZE);
 		memcpy((char*)&(cm_catRoot->numval), block0+2*sizeof(int), sizeof(double));
 		
-		var_offset = sizeof(int)*2+sizeof(double);
+		var_offset = sizeof(int)+sizeof(double)+CAT_NAME_MAXSIZE;
 
 		BlockPtr bPtr;
 		memcpy(&bPtr, block0+var_offset, sizeof(BlockPtr));
@@ -45,7 +45,7 @@ CatalogManager::CatalogManager()
 
 		unsigned char* block;
 		vector<NodePair> bPtrStack;
-		int count=0;
+		
 		while(bPtr.lBlock!=CAT_FLAG_NONBLOCK || !bPtrStack.empty()) {
 			while(bPtr.lBlock!=CAT_FLAG_NONBLOCK) {
 				block = bufmgr->getblock(pager, bPtr.lBlock, BUFFER_FLAG_NONDIRTY);
@@ -69,14 +69,11 @@ CatalogManager::CatalogManager()
 				bPtrStack.push_back(NodePair(left, bPtr));
 			}
 			while(bPtr.rBlock == CAT_FLAG_NONBLOCK && !bPtrStack.empty()){
-				// ????
-				/*
-				bPtr = bPtrStack.pop_back().second;
-				node = bPtrStack.pop_back().first;
-				*/
 				bPtrStack.pop_back();
-				bPtr = bPtrStack.back().second;
-				node = bPtrStack.back().first;
+                if(!bPtrStack.empty()){
+                    bPtr = bPtrStack.back().second;
+                    node = bPtrStack.back().first;
+                }
 			}
 			if(bPtr.rBlock != CAT_FLAG_NONBLOCK) {
 				bPtrStack.pop_back();
@@ -106,7 +103,7 @@ CatalogManager::CatalogManager()
 
 CatalogManager::~CatalogManager()
 {
-	size_t const_offset = sizeof(int)*6 + sizeof(double);
+	size_t const_offset = sizeof(int)*5 + sizeof(double) + CAT_NAME_MAXSIZE;
 	size_t var_offset=0;
 	Node* node = cm_catRoot;
 	int nodeCount=0;
@@ -160,7 +157,11 @@ CatalogManager::~CatalogManager()
 			}
 			var_offset = blockOffset;
 			memcpy(block + var_offset, &node->operation, sizeof(int)); var_offset+=sizeof(int);
-			memcpy(block + var_offset, node->strval, CAT_NAME_MAXSIZE); var_offset+=CAT_NAME_MAXSIZE;
+            if(node->strval){
+                memcpy(block + var_offset, node->strval, CAT_NAME_MAXSIZE); var_offset+=CAT_NAME_MAXSIZE;
+            }
+            else{                memset(block + var_offset, 0, CAT_NAME_MAXSIZE); var_offset += CAT_NAME_MAXSIZE;
+            }
 			memcpy(block + var_offset, &node->numval, sizeof(double)); var_offset+=sizeof(double);
 			memcpy(block + var_offset, &bPtr, sizeof(BlockPtr));
 
