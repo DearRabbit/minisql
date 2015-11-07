@@ -315,6 +315,17 @@ CatalogManager::delete_table_def(char* tableName)
 	{
 		if (strcmp(tableName, ptr->strval) == 0)
 		{
+            Node* columnPtr = ptr->rightSon;
+            while(columnPtr!=nullptr) {
+                if(columnPtr->rightSon&&columnPtr->rightSon->rightSon){
+                    string idxNameStr(tableName);
+                    idxNameStr += "_";
+                    idxNameStr += columnPtr->strval;
+                    idxNameStr += ".idx";
+                    BufferManager::getInstance()->deleteFile(idxNameStr.c_str());
+                }
+                columnPtr = columnPtr->leftSon;
+            }
 			tmpPtr->leftSon = ptr->leftSon;
 			return 0;
 		}
