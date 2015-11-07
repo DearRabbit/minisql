@@ -1,6 +1,8 @@
 %{
 #include "Database.h"
 #include "yacc.tab.hh"
+
+int yyBatchFlag = 0;
 %}
 
 %%
@@ -53,7 +55,7 @@ and   		{ return SYS_AND; }
 							return NAME; 
 						}
 
-[A-Za-z][A-Za-z0-9_]*"."[A-Za-z0-9]+	{ 
+[A-Za-z][A-Za-z0-9_]*"."[A-Za-z]+	{ 
 							/* warning!: Cause Error When table.column is available */
 							STRDUP_NEW(yylval.strval, yytext);
 							return FILENAME; 
@@ -83,6 +85,7 @@ int yywrap()
 	if (yyin != stdin)
 	{
 		fclose(yyin);
+		yyBatchFlag = 0;
 		yyin = stdin;
 		return 0;
 	}

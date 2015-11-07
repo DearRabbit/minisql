@@ -9,3 +9,7 @@ drop table b;
 insert into b values('name7', 'unique0', 10, 'M');
 create table a(id int, primary key(id));
 insert into a values(2);
+
+--!!!
+select * from b where id > 8 and name < 'unique2';
+select * from b where id > 9 and name < 'unique0';

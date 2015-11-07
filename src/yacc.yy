@@ -7,6 +7,7 @@
 extern int yylex(void);
 extern char *yytext;
 extern FILE *yyin;
+extern int yyBatchFlag;
 
 /* Error Processing */
 #define ErrorTokenLength 100
@@ -101,13 +102,17 @@ stmt:		QUIT CMD_FINISH
 					MINISQL_PROMPT1();
 					yyin = stdin;
 				}
-				free($2);
+				yyBatchFlag = 1;
+				delete ($2);
 			}
 		|	sql_list CMD_FINISH
 			{
 				/* do something! */
 				Database::getInstance()->processAST();
-				MINISQL_PROMPT1();
+				if (yyBatchFlag)
+					putchar('\n');
+				else
+					MINISQL_PROMPT1();
 			}
 		|	sql_list ';' error_statment CMD_FINISH
 			{
@@ -128,7 +133,11 @@ stmt:		QUIT CMD_FINISH
 				ErrorFlag = 0;
 				yyclearin;
 				yyerrok;
-				MINISQL_PROMPT1();
+
+				if (yyBatchFlag)
+					putchar('\n');
+				else
+					MINISQL_PROMPT1();
 			}
 		;
 
