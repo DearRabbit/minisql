@@ -208,7 +208,7 @@ create_table_element_list:
 		|	create_table_element_list ',' create_table_element
 			{
 				$3->leftSon = $1;
-				$$ = $1;
+				$$ = $3;
 			}
 		;
 
@@ -235,13 +235,13 @@ data_type:
 			{
 				$$ = YYAST->newEmptyNode();
 				$$->operation = VAL_CHAR;
-				$$->numval = 1;
+				$$->numval = 2;
 			}
 		|	CHAR '(' NUMBER ')'
 			{
 				$$ = YYAST->newEmptyNode();
 				$$->operation = VAL_CHAR;
-				$$->numval = $3;
+				$$->numval = $3+1;
 			}
 		|	INTEGER
 			{
