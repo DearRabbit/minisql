@@ -28,7 +28,14 @@ Node* NodeManager::newCopyDataNode(Node* data)
 	ptr->leftSon = nullptr;
 	ptr->rightSon = nullptr;
 
-	STRDUP_NEW(ptr->strval, data->strval);
+	if (data->strval != nullptr)
+	{
+		STRDUP_NEW(ptr->strval, data->strval);
+	}
+	else
+	{
+		ptr->strval = nullptr;
+	}
 
 	ptr->operation = data->operation;
 	ptr->numval = data->numval;
