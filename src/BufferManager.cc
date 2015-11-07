@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <utility>
-
+#include <assert.h>
 #if _DEBUG
 #include <iostream>
 #endif // _DEBUG
@@ -90,11 +90,20 @@ BufferManager::createFile(const char* filename)
 int
 BufferManager::deleteFile(const char* filename)
 {
+    for(auto tPair : bm_filePool) {
+        if(strcmp(tPair.first->getFileName(), filename) == 0){
+            for(auto bPair : tPair.second) {
+                bm_blockPool[bPair.second].clear();
+            }
+            bm_filePool.erase(tPair.first);
+            break;
+        }
+    }
+    
 	remove(filename);
     
-	if( access(filename, R_OK) == 0) {  //file still exists
-		return 0;
-	}
+    assert(access(filename, R_OK) != 0);  //file still exists
+
 	return 1;
 }
 

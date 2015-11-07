@@ -315,6 +315,17 @@ CatalogManager::delete_table_def(char* tableName)
 	{
 		if (strcmp(tableName, ptr->strval) == 0)
 		{
+            Node* columnPtr = ptr->rightSon;
+            while(columnPtr!=nullptr) {
+                if(columnPtr->rightSon&&columnPtr->rightSon->rightSon){
+                    string idxNameStr(tableName);
+                    idxNameStr += "_";
+                    idxNameStr += columnPtr->strval;
+                    idxNameStr += ".idx";
+                    BufferManager::getInstance()->deleteFile(idxNameStr.c_str());
+                }
+                columnPtr = columnPtr->leftSon;
+            }
 			tmpPtr->leftSon = ptr->leftSon;
 			return 0;
 		}
@@ -327,9 +338,7 @@ CatalogManager::delete_table_def(char* tableName)
 int
 CatalogManager::delete_index_def(char* indexName)
 {
-	string tmpStr(indexName);
-	tmpStr+=".idx";
-	BufferManager::getInstance()->deleteFile(tmpStr.c_str());
+	string tmpStr;
 
 	Node *tablePtr = cm_catRoot->leftSon;
 	Node *columnPtr = nullptr;
@@ -349,8 +358,14 @@ CatalogManager::delete_index_def(char* indexName)
 					if (strcmp(indexName, indexPtr->strval) == 0)
 					{
 						// first node: tp = primary key
-						if (tmpPtr->strval == nullptr)
+                        if (tmpPtr->strval == nullptr){
+                            tmpStr = tablePtr->strval;
+                            tmpStr += "_";
+                            tmpStr += columnPtr->strval;
+                            tmpStr += ".idx";
+                            BufferManager::getInstance()->deleteFile(tmpStr.c_str());
 							tmpPtr->rightSon = indexPtr->leftSon;
+                        }
 						// else
                         else
 							tmpPtr->leftSon = indexPtr->leftSon;
