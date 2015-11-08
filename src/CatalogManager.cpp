@@ -480,7 +480,10 @@ void
 CatalogManager::print_show_tables()
 {
 	Node *ptr = cm_catRoot->leftSon;
-	printf("+----------------+\n");
+	if (ptr != nullptr)
+		printf("+----------------+\n");
+	else
+		printf("Empty Database.");
 	while (ptr != nullptr)
 	{
 		printf("|%16s|\n", ptr->strval);
