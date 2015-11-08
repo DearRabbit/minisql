@@ -483,7 +483,7 @@ CatalogManager::print_show_tables()
 	if (ptr != nullptr)
 		printf("+----------------+\n");
 	else
-		printf("Empty Database.");
+		printf("Empty Database.\n");
 	while (ptr != nullptr)
 	{
 		printf("|%16s|\n", ptr->strval);
