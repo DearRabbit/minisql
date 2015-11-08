@@ -53,6 +53,7 @@ public:
 	~BPT();
 	int insertEntry(void* key, unsigned int block_t, unsigned int block_ofs);
 	int deleteEntry(void* key);
+	int deleteEntry(CursePair blockPtr);
 	int 	 select(Node* exprNode, vector<CursePair>& cursor);
 	// bulk loading( not implemented yet)
 	int   construct(Node* nodeAST, vector<CursePair>& cursor);

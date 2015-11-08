@@ -41,8 +41,8 @@ BPT::insertEntry(void* key, unsigned int block_t, unsigned int block_ofs)
 		rootNode->ncells = 0;
 		rootNode->freespc_ofs = IDX_BLOCKHEADER_SIZE + IDX_FILEHEADER_SIZE;
 		rootNode->cells_ofs = IDX_BLOCKHEADER_SIZE + IDX_FILEHEADER_SIZE;
-		rootNode->right_page = -1;
-		rootNode->is_leaf = 1;
+		rootNode->right_page = IDX_FLAG_NONPAGE;
+		rootNode->is_leaf = IDX_FLAG_LEAF;
 		rootNode->page = 0;
 		rootNode->cells = new vector<BPTCell*>;
 		bpt_fileheader.Root = 0;
@@ -79,6 +79,36 @@ BPT::insertEntry(void* key, unsigned int block_t, unsigned int block_ofs)
 		bptree_insertParentCell( leafNode, midcell , node_quote);
 	}
 	return 1;
+}
+
+int
+BPT::deleteEntry(CursePair blockPtr)
+{
+	if(bpt_fileheader.Root == IDX_FLAG_NOROOT)
+		return 0;
+
+	BPTNode* node;
+	bptree_getNodeByPage(bpt_fileheader.Root, &node);
+	while(node->is_leaf != IDX_FLAG_LEAF) {
+		bptree_getNodeByPage(node->cells->at(0)->left_ptr.left_page, &node);
+	}
+	int cellCount;
+	while(1) {
+		cellCount = 0;
+		for(auto tmpCell : *(node->cells)) {
+			if(blockPtr.first == tmpCell->left_ptr.leaf_ptr.n_block && 
+			    blockPtr.second == tmpCell->left_ptr.leaf_ptr.ofs_block){
+				bptree_deleteCell(node, cellCount);
+				return 1;
+			}
+			cellCount++;
+		}
+		if(node->right_page == IDX_FLAG_NONPAGE)
+			break;
+		else 
+			bptree_getNodeByPage(node->right_page, &node);
+	}
+	return 0;
 }
 
 int

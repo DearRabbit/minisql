@@ -105,6 +105,51 @@ IndexManager::new_entry_idx(char* tableName, char* columnName, Node* data, vecto
 	return (int)cursor.size();
 }
 
+int 
+IndexManager::delete_all_idx(char* tableName, char* columnName)
+{
+	char* fileName;
+
+	fileName = catIdxName(tableName, columnName);
+	IDXFileHeader* idxHeader = newIdxHeader(fileName);
+	BufferManager* bufmgr = BufferManager::getInstance();
+	bufmgr->deleteFile(fileName);
+	bufmgr->createFile(fileName);
+	Pager* tmpPager = bufmgr->getPager(fileName);
+	unsigned char* block0 = bufmgr->getblock(tmpPager, 0, BUFFER_FLAG_DIRTY);
+
+	idxHeader->Root = IDX_FLAG_NOROOT;
+	idxHeader->Free_list = IDX_FLAG_NONPAGE;
+	idxHeader->N_freepages = 0;
+	memcpy(block0, idxHeader, IDX_FILEHEADER_SIZE);
+
+	delete[] fileName;
+	delete idxHeader;
+	return 1;
+}
+
+int
+IndexManager::delete_entry_idx(char* tableName, char* columnName, vector<CursePair> cursor)
+{
+	char* fileName;
+
+	fileName = catIdxName(tableName, columnName);
+	BPT bpt(fileName);
+	for(auto blockPtr = cursor.begin(); blockPtr!= cursor.end();) {
+		if(bpt.deleteEntry(*blockPtr)) {
+			cursor.erase(blockPtr);
+		}
+		else {
+			blockPtr++;
+		}
+	}
+
+	delete[] fileName;
+
+	return 1;
+}
+
+
 int
 IndexManager::delete_entry_idx(char* tableName, char* columnName, Node* data)
 {

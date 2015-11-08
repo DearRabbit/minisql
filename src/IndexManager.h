@@ -52,8 +52,9 @@ public:
 	// - return:
 	// --- MINISQL_OK
 	// --- MINISQL_EIO: If the table does not exist.
+	int delete_entry_idx(char* tableName, char* columnName, vector<CursePair> cursor);
 	int delete_entry_idx(char* tableName, char* columnName, Node* data);
-
+	int delete_all_idx(char* tableName, char* columnName);
 	// - function:
 	// Raw select from a select AST 
 	// - note:
