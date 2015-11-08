@@ -129,7 +129,7 @@ IndexManager::delete_all_idx(char* tableName, char* columnName)
 }
 
 int
-IndexManager::delete_entry_idx(char* tableName, char* columnName, vector<CursePair> cursor)
+IndexManager::delete_entry_idx(char* tableName, char* columnName, vector<CursePair>& cursor)
 {
 	char* fileName;
 
