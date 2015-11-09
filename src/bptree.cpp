@@ -130,6 +130,9 @@ BPT::deleteEntry(void* key)
 int
 BPT::select(Node* expr, vector<CursePair>& cursor)
 {
+    if(bpt_fileheader.Root == IDX_FLAG_NOROOT)
+        return 0;
+    
 	void* value = new char[bpt_fileheader.Val_size];
 	Node* valPtr = expr->rightSon;
     
