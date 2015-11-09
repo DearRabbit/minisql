@@ -8,9 +8,9 @@
 
 // related with BLOCK_SIZE & BLOCK_NUMBER
 const int BLOCK_SIZE_OFFSET = 0;
-const int BLOCK_SIZE_MASK = BLOCK_SIZE;
+const int BLOCK_SIZE_MASK = BLOCK_SIZE-1;
 const int BLOCK_NUMBER_OFFSET = 12; //2^12 = 4096
-const int BLOCK_NUMBER_MASK = BLOCK_NUMBER; //
+const int BLOCK_NUMBER_MASK = BLOCK_NUMBER-1; //
 
 
 // TO-DO: rearrange
