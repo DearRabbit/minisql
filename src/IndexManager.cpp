@@ -118,7 +118,7 @@ IndexManager::delete_all_idx(char* tableName, char* columnName)
 	bufmgr->deleteFile(fileName);
 	bufmgr->createFile(fileName);
 	Pager* tmpPager = bufmgr->getPager(fileName);
-	unsigned char* block0 = bufmgr->getblock(tmpPager, 0, BUFFER_FLAG_DIRTY);
+	unsigned char* block0 = bufmgr->newblock(tmpPager, BUFFER_FLAG_DIRTY);
 
 	idxHeader->Root = IDX_FLAG_NOROOT;
 	idxHeader->Free_list = IDX_FLAG_NONPAGE;

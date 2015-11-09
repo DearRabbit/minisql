@@ -32,7 +32,11 @@ CatalogManager::CatalogManager()
 		cm_catRoot = cm_catNodeMgr.newEmptyNode();
 		cm_catNodeMgr.setRootNode(cm_catRoot);
 		pager = bufmgr->getPager("minisql.frm");
-
+        if(pager->getNPages() == 0) {
+            cm_catRoot->strval = new char[32];
+			strncpy(cm_catRoot->strval, "MINISQL v0.01", 32*sizeof(char));
+        }
+        else {	// File exists and not empty
 		size_t const_offset = sizeof(int)*6 + sizeof(double);
 		size_t var_offset=0;
 		unsigned char* block0 = bufmgr->getblock(pager, 0, BUFFER_FLAG_NONDIRTY);
@@ -44,7 +48,7 @@ CatalogManager::CatalogManager()
 		
 		var_offset = sizeof(int)+sizeof(double)+CAT_NAME_MAXSIZE;
 
-		// If empty .frm -> Corrupted db -> clean all
+		// If not empty but corrupted .frm -> Corrupted db -> clean all
 		if(strcmp(cm_catRoot->strval, "MINISQL v0.01")!=0) {
 			system("rm *.db");
 			system("rm *.frm");
@@ -120,6 +124,7 @@ CatalogManager::CatalogManager()
 				}
 			}
 		}
+		}	// File exists and not empty
 	}
 }
 

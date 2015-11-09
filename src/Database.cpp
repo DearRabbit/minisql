@@ -432,7 +432,7 @@ bool Database::db_deleteVal(Node *root)
 		{
 			if (m_catMgr.ifexist_index_on_column(root->strval, ptrColumn->strval))
 			{
-				// m_idxMgr.delete_all_idx(root->strval, ptrColumn->strval);
+				m_idxMgr.delete_all_idx(root->strval, ptrColumn->strval);
 			}
 			ptrColumn = ptrColumn->leftSon;
 		}
