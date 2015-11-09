@@ -111,6 +111,8 @@ IndexManager::delete_all_idx(char* tableName, char* columnName)
 	char* fileName;
 
 	fileName = catIdxName(tableName, columnName);
+	// bugs! no need to create a new file.
+	// memset is okay.
 	IDXFileHeader* idxHeader = newIdxHeader(fileName);
 	BufferManager* bufmgr = BufferManager::getInstance();
 	bufmgr->deleteFile(fileName);
@@ -129,19 +131,15 @@ IndexManager::delete_all_idx(char* tableName, char* columnName)
 }
 
 int
-IndexManager::delete_entry_idx(char* tableName, char* columnName, vector<CursePair> cursor)
+IndexManager::delete_entry_idx(char* tableName, char* columnName, vector<CursePair>& cursor)
 {
 	char* fileName;
 
 	fileName = catIdxName(tableName, columnName);
 	BPT bpt(fileName);
-	for(auto blockPtr = cursor.begin(); blockPtr!= cursor.end();) {
-		if(bpt.deleteEntry(*blockPtr)) {
-			cursor.erase(blockPtr);
-		}
-		else {
-			blockPtr++;
-		}
+	// fix bugs: do not erase the cursor.
+	for(auto blockPtr : cursor) {
+		bpt.deleteEntry(blockPtr);
 	}
 
 	delete[] fileName;

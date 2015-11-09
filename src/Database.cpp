@@ -424,12 +424,18 @@ bool Database::db_deleteVal(Node *root)
 	}
 
 	int returnVal;
-	columnDef = m_catMgr.get_column_def(root->strval);
+	Node *ptrColumn = m_catMgr.get_column_def(root->strval);
 	if (root->rightSon == nullptr)
 	{
 		returnVal = m_recMgr.delete_all_record(root->strval);
-		// TO-DO
-		// delete all thing on the idx of table 'name'
+		while(ptrColumn != nullptr)
+		{
+			if (m_catMgr.ifexist_index_on_column(root->strval, ptrColumn->strval))
+			{
+				// m_idxMgr.delete_all_idx(root->strval, ptrColumn->strval);
+			}
+			ptrColumn = ptrColumn->leftSon;
+		}
 	}	
 	else
 	{
@@ -452,6 +458,14 @@ bool Database::db_deleteVal(Node *root)
 		}
 
 		returnVal = m_recMgr.delete_record(root->strval, cursor);
+		while(ptrColumn != nullptr)
+		{
+			if (m_catMgr.ifexist_index_on_column(root->strval, ptrColumn->strval))
+			{
+				m_idxMgr.delete_entry_idx(root->strval, ptrColumn->strval, cursor);
+			}
+			ptrColumn = ptrColumn->leftSon;
+		}
 	}
 	// delete index
 	// for (auto it : something from cat?)
