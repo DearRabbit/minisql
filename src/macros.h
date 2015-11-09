@@ -11,6 +11,7 @@ using std::cout;
 
 #define MINISQL_PROMPT1() printf("minisql> ")
 #define MINISQL_PROMPT2() printf("       > ")
+// #define _SHOW_TIME
 
 /* throw exception when failed */
 #define STRDUP_NEW(dest, src) \

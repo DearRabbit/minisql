@@ -165,8 +165,8 @@ CursePair RecordManager::new_entry_record(Node* root)
 	if (m_header.nextEmptyNo >= m_header.blockCount)
 	{
 		blockEmpty = m_bufInstance->newblock(m_currentPage, BUFFER_FLAG_DIRTY);
-		m_header.nextEmptyNo = (++m_header.blockCount);
-		m_header.nextEmptyOffset = 0;
+		//m_header.nextEmptyNo = (++m_header.blockCount);
+		//m_header.nextEmptyOffset = 0;
 	}
 	else
 	{
@@ -186,7 +186,7 @@ CursePair RecordManager::new_entry_record(Node* root)
 		// initially empty
 
 		// need new block
-		if (m_header.nextEmptyOffset+blockOffset+m_header.valLength+sizeof(int)\
+		if (m_header.nextEmptyOffset+(m_header.valLength+sizeof(int))*2\
 			> BLOCK_SIZE)
 		{
 			++m_header.nextEmptyNo;
@@ -216,11 +216,11 @@ CursePair RecordManager::new_entry_record(Node* root)
 			strncpy((char*)ptrBuf, ptrData->strval,len);
 		else if (m_header.columnType[i] == VAL_FLOAT)
 		{
-			*(ptrBuf) = (float)ptrData->numval;
+			*((float*)ptrBuf) = (float)ptrData->numval;
 		}
 		else //(m_header.columnType == VAL_INT)
 		{
-			*(ptrBuf) = (int)ptrData->numval;
+			*((int*)ptrBuf) = (int)ptrData->numval;
 		}
 		ptrData = ptrData->leftSon;
 	}

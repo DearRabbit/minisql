@@ -55,7 +55,7 @@ and   		{ return SYS_AND; }
 							return NAME; 
 						}
 
-[A-Za-z][A-Za-z0-9_]*"."[A-Za-z]+	{ 
+[A-Za-z./_]+	{ 
 							/* warning!: Cause Error When table.column is available */
 							STRDUP_NEW(yylval.strval, yytext);
 							return FILENAME; 
@@ -86,6 +86,7 @@ int yywrap()
 	{
 		fclose(yyin);
 		yyBatchFlag = 0;
+		MINISQL_PROMPT1();
 		yyin = stdin;
 		return 0;
 	}
