@@ -3,6 +3,11 @@
 #include <unistd.h>
 #include <assert.h>
 
+#ifdef __MINGW32__
+#include <stdio.h>
+#include <stdlib.h>
+#endif
+
 using std::pair;
 using std::vector;
 

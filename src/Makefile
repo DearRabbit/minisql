@@ -9,6 +9,9 @@ all: CatalogManager.o IndexManager.o RecordManager.o NodeManager.o BufferManager
  	bptree.o yacc.tab.o lex.yy.o main.o
 	$(CC) $(LDFLAGS) $^ -o minisql
 
+win: CC=g++
+win: all
+
 main.o: main.cpp
 	$(CC) $(DBGFLAGS) $(COMFLAGS) -c $^
 Database.o: Database.cpp
@@ -30,7 +33,7 @@ lex.yy.o: lex.yy.c
 	$(CC) $(DBGFLAGS) -c $^
 
 yacc.tab.o: yacc.tab.cc
-	$(CC) $(DBGFLAGS) -c $^
+	$(CC) $(DBGFLAGS) -c $^ $(COMFLAGS)
 
 lex.yy.c: lex.l
 	$(LEX) lex.l

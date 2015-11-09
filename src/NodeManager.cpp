@@ -1,5 +1,9 @@
 #include "NodeManager.h"
 
+#ifdef __MINGW32__
+#include <string.h>
+#endif
+
 NodeManager::NodeManager()
 {
 
