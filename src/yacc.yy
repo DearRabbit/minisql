@@ -9,6 +9,10 @@ extern char *yytext;
 extern FILE *yyin;
 extern int yyBatchFlag;
 
+#ifdef SHOW_TIME
+	extern clock_t clk_start;
+#endif
+
 /* Error Processing */
 #define ErrorTokenLength 100
 int ErrorFlag;
@@ -102,7 +106,13 @@ stmt:		QUIT CMD_FINISH
 					MINISQL_PROMPT1();
 					yyin = stdin;
 				}
-				yyBatchFlag = 1;
+				else 
+				{
+					#ifdef SHOW_TIME
+					clk_start = clock();
+					#endif
+					yyBatchFlag = 1;
+				}
 				delete ($2);
 			}
 		|	SHOW TABLES_IN_SHOW CMD_FINISH

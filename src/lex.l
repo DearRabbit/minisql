@@ -2,6 +2,9 @@
 #include "Database.h"
 #include "yacc.tab.hh"
 
+#ifdef SHOW_TIME
+	clock_t clk_start, clk_end;
+#endif
 int yyBatchFlag = 0;
 %}
 
@@ -86,6 +89,10 @@ int yywrap()
 	{
 		fclose(yyin);
 		yyBatchFlag = 0;
+		#ifdef SHOW_TIME
+		clk_end = clock();
+		printf("Total time:%lfs\n", ((double)(clk_end - clk_start)/CLOCKS_PER_SEC));
+		#endif
 		MINISQL_PROMPT1();
 		yyin = stdin;
 		return 0;

@@ -165,8 +165,7 @@ CursePair RecordManager::new_entry_record(Node* root)
 	if (m_header.nextEmptyNo >= m_header.blockCount)
 	{
 		blockEmpty = m_bufInstance->newblock(m_currentPage, BUFFER_FLAG_DIRTY);
-		//m_header.nextEmptyNo = (++m_header.blockCount);
-		//m_header.nextEmptyOffset = 0;
+		m_header.blockCount++;
 	}
 	else
 	{

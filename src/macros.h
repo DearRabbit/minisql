@@ -29,6 +29,8 @@ typedef std::pair<int, int> CursePair;
 #define	MINISQL_EIO			(-2)			// Table not found 
 #define	MINISQL_ECONSTRAINT	(-3)			// Constraints error 
 
+#define SHOW_TIME
+
 ///--- Don't know if this is the right place.
 ///--- If anything, please point out.
 #define  IDX_BLOCKHEADER_SIZE   (28)
