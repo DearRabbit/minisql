@@ -42,6 +42,6 @@ yacc.tab.cc yacc.tab.h: yacc.yy
 	$(YACC) yacc.yy
 
 clean: 
-	rm -f lex.yy.* yacc.tab.* *.o yacc.output minisql
+	rm -rf lex.yy.* yacc.tab.* *.o yacc.output minisql minisql.dSYM/
 cleandb:
 	rm -f *.db *.idx *.frm

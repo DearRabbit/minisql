@@ -54,6 +54,7 @@ CatalogManager::CatalogManager()
 			system("rm *.frm");
 			system("rm *.idx");
 			cm_catNodeMgr.clean();
+			m_columndef.clean();
 			bufmgr->createFile("minisql.frm");
 			cm_catRoot = cm_catNodeMgr.newEmptyNode();
 			cm_catNodeMgr.setRootNode(cm_catRoot);
@@ -204,6 +205,7 @@ CatalogManager::~CatalogManager()
 	}
 
 	cm_catNodeMgr.clean();
+	m_columndef.clean();
 }
 
 int
