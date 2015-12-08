@@ -4,6 +4,7 @@ YACC = bison -dtv
 COMFLAGS = -std=c++11
 LDFLAGS =
 DBGFLAGS = -g
+.PHONY = clean
 
 all: CatalogManager.o IndexManager.o RecordManager.o NodeManager.o BufferManager.o Database.o\
  	bptree.o yacc.tab.o lex.yy.o main.o
