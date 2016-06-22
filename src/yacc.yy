@@ -267,7 +267,6 @@ data_type:
 				$$->operation = VAL_INT;
 			}
 		|	FLOAT
-			INTEGER
 			{
 				$$ = YYAST->newEmptyNode();
 				$$->operation = VAL_FLOAT;

@@ -28,3 +28,9 @@
 *.app
 
 .DS_Store
+*.frm
+lex.yy.c
+minisql
+yacc.output
+yacc.tab.cc
+yacc.tab.hh
